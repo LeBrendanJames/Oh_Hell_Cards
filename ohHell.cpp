@@ -1,8 +1,21 @@
 // Program to find optimal bid and play given game parameters  
 // https://en.wikipedia.org/wiki/Oh_Hell
 
+#include <iostream>
 #include <vector>
+#include "gameState.h"
 
+/*
+
+void getGameStateInput(){
+
+}
+
+int findWinner(Card* cards){
+	int winnerPos = -1;
+
+	return winnerPos;
+}
 
 
 // recursive playGame function
@@ -37,8 +50,9 @@ int main(){
 	int totalCards = 1;
 	int position = 1;
 	int totalPlayers = 4;
-	
-	std::vector<int> remainingCards = {1, 2, 3, 4}
+
+	Suit trump = Hearts;
+	std::vector<int> remainingCards = {1, 2, 3, 4};
 	int tricksTaken = 0;
 	
 	int curScore = 0;
@@ -52,6 +66,45 @@ int main(){
 
 
 	return bid;
+}
+ */
+
+
+
+
+// TESTS
+int main(){
+	// CARD CLASS TESTS
+	std::cout << std::endl;
+	std::cout << "CARD CLASS TESTS" << std::endl;
+	std::cout << "-------------------------------------" << std::endl;
+	Card * card = new Card("Th");
+	if (card->getVal() == 10){
+		std::cout << "TEST: Set Card Val - PASSED" << std::endl;
+	} else {
+		std::cout << "TEST: Set Card Val - FAILED" << std::endl;
+	}
+
+	if (card->getSuit() == 2){
+		std::cout << "TEST: Set Card Suit - PASSED" << std::endl;
+	} else {
+		std::cout << "TEST: Set Card Suit - FAILED" << std::endl;
+	}
+	delete card;
+
+
+
+	// GAMESTATE CLASS TESTS
+	std::cout << std::endl;
+	std::cout << "GAMESTATE CLASS TESTS" << std::endl;
+	std::cout << "-------------------------------------" << std::endl;
+	GameState * newGame = new GameState(4, 1, Diamonds);
+
+	delete newGame;
+
+
+
+	return 1;
 }
 
 
