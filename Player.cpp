@@ -70,8 +70,8 @@ void Player::printHand(){
 }
 
 // Make optimal bid based on findings from game simulations
-int Player::makeBid() {
-
+int Player::makeBid(GameState * currState) {
+    int bidChoice = -1;
 
     // for number of sims
         // Copy gameState (to have one of the players own to use)
