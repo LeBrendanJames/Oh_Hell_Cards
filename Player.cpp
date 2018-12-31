@@ -72,36 +72,90 @@ void Player::printHand(){
 // Make optimal bid based on findings from game simulations
 int Player::makeBid(GameState * currState) {
     int bidChoice = -1;
+	
+	auto ** masterExPts = new double[currState->getTotalCards()];
+	for (int i = 0; i < currState->getTotalCards(); i++){
+		masterExPts[i] = new double[currState->getNumPlyrs()] {0.0}; // I think this sets all to 0.0? Check in tests...
+	}
 
     // for number of sims
+	for (int i = 0; i < NUM_SIMS; i++){
         // Copy gameState (to have one of the players own to use)
-        // Randomize other players cards
+		auto * newGmSt = new GameState(*currState);
+		
+        // Randomize other players cards (and fill hero w/ known hand)
+		Card ** allHands;
+		makeRandomPlayerHands(&allHands);
+		
         // Run simulation (can make this its own function - return array of expected points by bid amount)
-            // for bid from 0 up to max
-                // exPts[bidNum] = gameResult after bidding whatever --> Player::makeBid
-            // Find max expected points out of all the bids and save that bid as the recommendation
+		runSimulation(newGmSt, &allHands, &masterExPts);
+	}
 
-        // Take results of simulation and add to master array of points by bid
-
-    // Simulation
-        // Copy gameState
-        // if bid = blank then
-            // for bid = 0 up to max
-                // update gameState for bid
-                // exPts[bidNum] = runSimulation(new gameState)
-        // else
-            // for play = first available card to last available card
-                // results += find play (this is the function where the recursion eventually bottoms out)
-            // return row of results that's best for whichever player is the one to act here
-
-        // return results
-
-    // Find Play
-        //
-
+	// Find which bid produces highest expected points 
+	bidChoice = 0;
+	for (int i = 1; i < currState->getTotalCards(); i++){
+		if (masterExPts[i][position] > masterExPts[bidChoice][position]){
+			bidChoice = i;
+		}
+	}
 
 
     return bidChoice;
+}
+
+void makeRandomPlayerHands(Card *** otherHands){
+	
+}
+
+void Player::runSimulation(){
+	// Copy gameState
+	auto * newGmSt = new GameState(*currState);
+	
+	// if bid = blank then
+	if (bids[newGmSt->getNextToAct()] == -1){
+		// for bid = 0 up to max
+		for (int i = 0; i < newGmSt->getTotalCards(); i++){
+			// update gameState for bid
+			bids[newGmSt->getNextToAct()] = i;
+			newGmSt->incNextToAct();
+			
+			// exPts[bidNum] = runSimulation(new gameState)
+			runSimulation(newGmSt, &allHands, &masterExPts); // RECURSIVE CALL
+		}
+	} else { // else
+		findPlay(newGmSt, allHands, masterExPts);
+	}
+	
+	// fill passed in results array
+	
+}
+
+void Player::findPlay(){
+	// for play = first available card to last available card
+	for (int i = 0; i < newGmSt->getCardsRemaining(); i++){
+		// copy gameState
+		
+		// Update gameState with card played
+		newGmSt->addCardPlayed(card, newGmSt->getNextToAct());
+		allHands[i][newGmSt->getNextToAct()] = nullptr; // card now pointed to by prevCardsPlayed
+		
+		// Update who is next to act
+		newGmSt->updateNextToAct(); // This either just increments player or if we're at the end of the hand/game figures out next to go 
+									// This also decrements cards remaining if we are at the end of a trick 
+		
+		if (newGmSt->getNextToAct() != -1){
+			// results += find play (this is the function where the recursion eventually bottoms out)
+			findPlay(newGmSt, allHands, masterExPts);
+		} else { // end of game - bottom out of recursion 
+			newGmSt->tallyPoints(); // Tallies points or sets all to 0 if cards played order created ineligible game (for example, not following suit when a player could do so) 
+		}
+		
+		// figure out if scenario that bottomed out made sense for
+		if (newGmSt->getPts(newGmSt->getNextToAct()) > currPts){
+			// update 
+		}
+	}
+	// return row of results that's best for whichever player is the one to act here
 }
 
 

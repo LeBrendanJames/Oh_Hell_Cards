@@ -22,8 +22,7 @@ public:
     void printHand();
 
     int makeBid(GameState * currState);
-    Card * makePlay(GameState * currState); // This is seperate from evaluatePlays so that I can implement skill levels
-                                            // Play made not necessarily = optimal play if player not expert
+    Card * makePlay(GameState * currState); 
 
 private:
     bool hero;

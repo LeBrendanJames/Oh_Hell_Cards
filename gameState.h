@@ -5,6 +5,7 @@
 
 #include "Card.h"
 
+
 class GameState{
 public:
     GameState(int numPlyrs, int totalCards, Suit trump);
@@ -21,6 +22,10 @@ public:
 
     bool isTrump(Card * card);
     void decCardsRemaining();
+	
+	void genOpponentHands(); // ?
+	
+	bool playCard(int cardToPlay);
 
 private:
     int numPlyrs;
@@ -28,8 +33,11 @@ private:
     int totalCards;
     int numCardsRemaining;
     Suit trump;
-
-    Card ** prevPlayedCards; // 2d array with each row being each successive round and each column bing a player
+	int nextToAct;
+	
+	Card ** plyrHands;
+    Card ** plydCrds; // 2d array with each row being each successive round and each column being a player
+	Card * flippedCard;
 };
 
 #endif //CARDS_GAMESTATE_H

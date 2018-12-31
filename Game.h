@@ -6,20 +6,23 @@
 #ifndef CARDS_GAME_H
 #define CARDS_GAME_H
 
+#include "GameState.h"
+#include "PlayNode.h"
+
+BID_CORRECT_BONUS = 10;
+NUM_SIMS = 1;
+
+
 class Game{
 public:
     Game(int numPlayers, int heroPosition, int totalCards, Card * flippedCard, Card ** heroHand);
     ~Game();
 
-    void simRound(); // Follows along with live game and makes recommendations each time it is hero's turn ot act
-    void nextRound(); // Moves dealer pointer and sets everyone's positions
+    void simRound(); // Follows along with live game and makes recommendations each time it is hero's turn to act
 
 private:
     GameState * gmState;
-    Player * hero;
-    Player * dealer;
-
-    void playCard();
+	
 };
 
 #endif //CARDS_GAME_H

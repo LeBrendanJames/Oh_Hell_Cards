@@ -7,71 +7,23 @@
 #include "Player.h"
 
 /*
-
-void getGameStateInput(){
-
-}
-
-int findWinner(Card* cards){
-	int winnerPos = -1;
-
-	return winnerPos;
-}
-
-
-// recursive playGame function
-// takes a current game situation and chooses the max expected points of all the options of cards to play, which is the recursive call 
-int playGame(int bid, int totalCards, int position, int totalPlayers, std::vector<int> remainingCards){
-	int expectedPoints = 0;
-	
-	if (totalCards > 1){
-		
-	} else {
-		if (position == 1){
-			// if player holds trump
-			
-			// else
-			
-		} else {
-			// if player holds trump
-			
-			// else
-			
-		}
-		return expectedPoints;
-	}
-}
-
-
 int main(){
-	// Number of cards (at start of round, even if you're midway through it)
-
- 	// Number of players
-
- 	// Hero position
-
- 	case BID:
- 		// If not first position, get previous bids
-
- 		// get player hand
-
- 		// build player, gameState
-
- 		// Print bid recommendation
- 		std::cout << "Bid recommendation: " << std::to_string(player->makeBid()) << std::endl;
- 	case PLAY:
- 		// Get everyones bids
-
- 		// Get cards played so far (ask how many tricks completed so far and get those,
- 		// then get cards played this trick before hero, if hero isn't 1st position)
-
- 		// Make player, gameState
-
- 		// print play recommendation
- 		std::cout << "Play recommendation: " << player->makePlay() << std::endl;
-
+	// Get user input on current game
+		// How many players?
+		// Hero position?
+		// Number of cards in round?
+		// Any bids yet?
+		// Any full tricks played yet?
+		// Any cards played yet?
+	
+	// Create Game & GameState 
+	
+	game->simRound();
+	
+	
+	return 0;
 }
- */
+*/
 
 
 
@@ -212,7 +164,7 @@ int main(){
 
 
 
-	return 1;
+	return 0;
 }
 
 
