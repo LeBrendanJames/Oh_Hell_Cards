@@ -11,10 +11,13 @@ enum Suit {Clubs, Diamonds, Hearts, Spades};
 class Card {
 public:
     Card(std::string card);
+    Card(int cardVal, Suit cardSuit);
     ~Card() = default;
 
     int getVal();
     Suit getSuit();
+
+    std::string getCardStr();
 
 private:
     int value;

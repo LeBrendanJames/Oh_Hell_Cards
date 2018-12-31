@@ -29,10 +29,44 @@ Card::Card(std::string card){
     }
 }
 
+Card::Card(int cardVal, Suit cardSuit){
+    value = cardVal;
+    suit = cardSuit;
+}
+
 int Card::getVal() {
     return value;
 }
 
 Suit Card::getSuit() {
     return suit;
+}
+
+std::string Card::getCardStr(){
+    std::string cardStr;
+    if (value == 1){ // 'A'
+        cardStr += 'A';
+    } else if (value < 10){ // Digit is fine
+        cardStr += std::to_string(value);
+    } else if (value == 10){ // 'T'
+        cardStr += 'T';
+    } else if (value == 11){ // 'J'
+        cardStr += 'J';
+    } else if (value == 12){ // 'Q'
+        cardStr += 'Q';
+    } else if (value == 13){ // 'K'
+        cardStr += 'K';
+    }
+
+    if (suit == Clubs){
+        cardStr += 'c';
+    } else if (suit == Diamonds){
+        cardStr += 'd';
+    } else if (suit == Hearts){
+        cardStr += 'h';
+    } else { // Spades
+        cardStr += 's';
+    }
+
+    return cardStr;
 }
