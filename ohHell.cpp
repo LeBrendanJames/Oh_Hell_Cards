@@ -3,8 +3,9 @@
 
 #include <iostream>
 #include <vector>
-#include "gameState.h"
-#include "Player.h"
+#include "Game.h"
+//#include "gameState.h"
+//#include "Player.h"
 
 /*
 int main(){
@@ -27,7 +28,40 @@ int main(){
 
 
 
+int main(){
+    Card * flippedCard = new Card("Th");
+    std::cout << "Flipped Card: " << flippedCard->getCardStr() << std::endl;
 
+    Card ** heroHand = new Card*[2];
+    heroHand[0] = new Card("Ah");
+    heroHand[1] = new Card("Kh");
+    std::cout << "Hero hand card #1: " << heroHand[0]->getCardStr() << std::endl;
+    std::cout << "Hero hand card #2: " << heroHand[1]->getCardStr() << std::endl;
+
+    int numPlayers = 4;
+    int heroPosition = 1;
+    int totalCards = 2;
+
+    Game * game = new Game(numPlayers, heroPosition, totalCards, flippedCard, heroHand);
+
+    // Set bids
+    game->setBid(1, 2);
+    game->setBid(2, 0);
+    game->setBid(3, 0);
+    game->setBid(4, 0);
+
+    for (int i = 0; i < numPlayers; i++){
+        std::cout << "Player #" << i + 1 << " bid: " << game->getBid(i + 1) << std::endl;
+    }
+
+    game->simRound();
+
+    game->printResults();
+}
+
+
+
+/*
 // TESTS
 int main(){
 	// CARD CLASS TESTS
@@ -131,6 +165,7 @@ int main(){
 	game = nullptr;
 
 
+	/*
 	// PLAYER TESTS
 	std::cout << std::endl;
 	std::cout << "PLAYER CLASS TESTS" << std::endl;
@@ -157,6 +192,7 @@ int main(){
 	delete game;
 
 
+
 	// GAMEPLAY TESTS
 	std::cout << std::endl;
 	std::cout << "GAMEPLAY TESTS" << std::endl;
@@ -166,5 +202,6 @@ int main(){
 
 	return 0;
 }
+ */
 
 

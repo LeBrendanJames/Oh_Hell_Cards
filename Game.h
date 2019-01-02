@@ -6,11 +6,11 @@
 #ifndef CARDS_GAME_H
 #define CARDS_GAME_H
 
+#include <iostream>
 #include "GameState.h"
-#include "PlayNode.h"
 
-BID_CORRECT_BONUS = 10;
-NUM_SIMS = 1;
+const int BID_CORRECT_BONUS = 10;
+const int NUM_SIMS = 1;
 
 
 class Game{
@@ -18,7 +18,11 @@ public:
     Game(int numPlayers, int heroPosition, int totalCards, Card * flippedCard, Card ** heroHand);
     ~Game();
 
+    void setBid(int position, int bid);
+    int getBid(int position);
+
     void simRound(); // Follows along with live game and makes recommendations each time it is hero's turn to act
+    void printResults();
 
 private:
     GameState * gmState;

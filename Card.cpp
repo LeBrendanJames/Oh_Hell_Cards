@@ -34,6 +34,32 @@ Card::Card(int cardVal, Suit cardSuit){
     suit = cardSuit;
 }
 
+Card::Card(const Card &oldCard){
+    this->value = oldCard.value;
+    this->suit = oldCard.suit;
+}
+
+bool Card::operator< (Card const &rhCard){
+    if (value == 1){ // lhCard is Ace
+        return false;
+    } else if (rhCard.value == 1){ // rhCard Ace, lhCard not
+        return true;
+    } else {
+        return value < rhCard.value;
+    }
+}
+
+bool Card::operator> (Card const &rhCard){
+    if (rhCard.value == 1){
+        return false;
+    } else if (value == 1){
+        return true;
+    } else {
+        return value > rhCard.value;
+    }
+}
+
+
 int Card::getVal() {
     return value;
 }
