@@ -4,12 +4,12 @@
 #define CARDS_PLAYNODE_H
 
 
-class PlayNode{
+class DecisionPoint{
 public:
-	PlayNode(GameState * currGmSt);
-	~PlayNode();
+	DecisionPoint(GameState * currGmSt);
+	~DecisionPoint();
 	
-	void makePlay(GameState * currGmSt);
+	Card makePlay(GameState * currGmSt);
 	
 
 private:

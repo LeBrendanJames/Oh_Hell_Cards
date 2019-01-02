@@ -1,8 +1,8 @@
 
 
-#include "PlayNode.h"
+#include "DecisionPoint.h"
 
-PlayNode::PlayNode(GameState * gmSt){
+DecisionPoint::DecisionPoint(GameState *currGmSt){
 	position = gmSt->getNextToAct();
 	scores = new std::vector<int>;
 	for (int i = 0; i < gmSt->getNumPlyrs(); i++){
@@ -10,12 +10,12 @@ PlayNode::PlayNode(GameState * gmSt){
 	}
 }
 
-PlayNode::~PlayNode(){
+DecisionPoint::~DecisionPoint(){
 	delete scores;
 }
 
 
-void PlayNode::makePlay(GameState * currGmSt){ // **MIGHT WANT TO RETURN CARD PLAYED, WHICH WILL BE IGNORED FOR ALL BUT THE TOP CALL TO MAKEPLAY
+void DecisionPoint::makePlay(GameState * currGmSt){ // **MIGHT WANT TO RETURN CARD PLAYED, WHICH WILL BE IGNORED FOR ALL BUT THE TOP CALL TO MAKEPLAY
 	// make tallyScores array w/ number of players & cards remaining as dimensions
 	int ** tallyScores = new int*[currGmSt->getNumPlyrs()];
 	for (int i = 0; i < currGmSt->getNumPlyrs(); i++){
@@ -45,7 +45,7 @@ void PlayNode::makePlay(GameState * currGmSt){ // **MIGHT WANT TO RETURN CARD PL
 			
 			if (newGmSt->getNextToPlay() != -1){ // recursive case 
 				// Create new node & call its makePlay function
-				auto * newNode = new PlayNode(newGmSt);
+				auto * newNode = new DecisionPoint(newGmSt);
 				newNode->makePlay(newGmSt);
 				
 				// Reach in to new node's scores array (w/ getter function?) and copy into tallyScores array
@@ -86,7 +86,7 @@ void PlayNode::makePlay(GameState * currGmSt){ // **MIGHT WANT TO RETURN CARD PL
 }
 
 
-void Player::tallyScores(GameState * gmSt, int ** tallyScoresArray, int tallyScoreCol){
+void DecisionPoint::tallyScores(GameState * gmSt, int ** tallyScoresArray, int tallyScoreCol){
 	// GameState will be full with all bids and cards played, so should be a pretty simple tally of each trick then bonuses for tricks won = bid 
 	for (int i = 0; i < gmSt->getTotalCards(); i++){
 		int firstPosition = gmSt->getRoundLead(i); // TODO: Need to save who leads each round (or I guess who leads the first round - all others can be figured out from that)
