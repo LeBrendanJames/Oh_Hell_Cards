@@ -10,7 +10,7 @@ GameState::GameState(int numPlyrs, int heroPosition, int totalCards, Card * flip
     this->trump = flippedCard->getSuit();
     this->nextToAct = 0;
     bids = new int[numPlyrs] {-1};
-    roundLead = new int[totalCards]();
+    roundLead = new int[totalCards]{-1};
     roundLead[0] = 0; // Position 0 starts 1st round
 
     plyrHands = new Card**[numPlyrs];
@@ -114,6 +114,10 @@ int GameState::getNextToAct(){
     return nextToAct;
 }
 
+int GameState::getCurrRound(){
+	return currRound;
+}
+
 int GameState::getBid(int position){
     return bids[position - 1];
 }
@@ -139,11 +143,53 @@ void GameState::decCardsRemaining(){
 }
 
 void GameState::genOpponentHands() {
+	int cardVal = -1, cardSuit = -1;
+	bool cardAlreadyUsed = true;
+	
+	for (int i = 0; i < numPlyrs; i++){
+		if (i != heroPosition){
+			for (int j = 0; j < totalCards; j++){
+				// Generate random card, making sure it hasn't already been used
+				do {
+					cardVal = rand() % 13 + 1;
+					cardSuit = rand() % 4;
+					cardAlreadyUsed = checkCardAlreadyUsed(cardVal, cardSuit);
+				} while (cardAlreadyUsed);
+				
+				// Add to plyrHands array 
+				plyrHands[i][j] = new Card(cardVal, cardSuit);
+			}
+		}
+	}
+}
 
+bool GameState::cardAlreadyUsed(int cardVal, int cardSuit){
+	Card cardToCheck(cardVal, cardSuit);
+	
+	// Check if card in plyrHands or plydCrds
+	int i = 0, j = 0;
+	while (i < numPlyrs && match = false){
+		j = 0;
+		while (j < totalCards && match = false){
+			if (cardToCheck = *(plyrHands[i][j]) && cardToCheck == *(plydCrds[i][j])){
+				match = true;
+			}
+			j++;
+		}
+		i++;
+	}
+	
+	// Check against flipped card
+	if (match == false && cardToCheck == *flippedCard){
+		match = true;
+	}
+
+	return match;
 }
 
 bool GameState::playCard(int cardToPlay){
     // 1. Check if play is valid
+	bool isValidPlay = checkValidPlay(heroPosition, cardToPlay); 
     
     // If it is:
     if (isValidPlay) {
@@ -159,6 +205,28 @@ bool GameState::playCard(int cardToPlay){
         // Else return false
         return false;
     }
+}
+
+bool GameState::checkValidPlay(int position, int cardToPlay){
+	if (roundLead(currRound) == -1){
+		return true; // Play is automatically valid if it is leading the round 
+	} else {
+		bool valid = true; // default to true unless below check isn't satisfied
+		
+		// find roundLead suit
+		Suit leadSuit = plydCrds[currRound][roundLead(currRound)]->getSuit();
+		
+		// check if player in 'position' has any of that suit
+		for (int i = 0; i < totalCards; i++){
+			if (plyrHands[position][i] != nullptr && plyrHands[position][i]->getSuit == leadSuit && plyrHands[position][cardToPlay]->getSuit() != leadSuit){
+				// player has suit to follow lead but isn't playing it = NOT VALID
+				valid = false;
+			}
+		}
+		
+		return valid;
+	}
+	
 }
 
 void GameState::addCardPlayed(std::string card){
@@ -181,9 +249,15 @@ void GameState::updateNextToAct(){
     //std::cout << "In 'GameState::updateNextToAct'" << std::endl;
     nextToAct = (nextToAct + 1) % numPlyrs;
     //std::cout << "Next to act (after updating - code version): " << nextToAct << std::endl;
-    if (nextToAct == roundLead[totalCards - numCardsRemaining]){
+	if (nextToAct == roundLead[totalCards - numCardsRemaining]){ // Trick over 
         nextToAct = findTrickWinner(totalCards - numCardsRemaining);
         decCardsRemaining();
+		if (numCardsRemaining != 0){ // If there are remaining tricks
+			// Update roundLead array
+			roundLead(totalCards - numCardsRemaining) = nextToAct;
+		} else { // Update next to act to -1 if round/tricks are over 
+			nextToAct = -1;
+		}
     }
 }
 

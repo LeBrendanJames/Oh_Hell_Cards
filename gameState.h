@@ -19,6 +19,7 @@ public:
     int getCardsRemaining();
     Suit getTrump();
     int getNextToAct();
+	int getCurrRound();
     int getBid(int position);
     int getRoundLead(int roundNum);
 
@@ -26,7 +27,7 @@ public:
 
     bool isTrump(Card * card);
     void decCardsRemaining();
-	void genOpponentHands(); // ?
+	void genOpponentHands();
 	bool playCard(int cardToPlay);
 	void addCardPlayed(std::string card);
     void removeCardFromHand(int plyrPosition, std::string card);
@@ -41,6 +42,7 @@ private:
     int numCardsRemaining;
     Suit trump;
 	int nextToAct;
+	int currRound;
 
     int * bids;
 	int * roundLead;
@@ -48,6 +50,9 @@ private:
 	Card *** plyrHands; // 2d array with each row being a player and each column being a card
     Card *** plydCrds; // 2d array with each row being each successive round and each column being a player
 	Card * flippedCard;
+	
+	bool cardAlreadyUsed(int cardVal, int cardSuit); // Used in genOpponentHands 
+	bool checkValidPlay(int position, int cardToPlay); // Used in playCard
 };
 
 #endif //CARDS_GAMESTATE_H

@@ -15,7 +15,7 @@ DecisionPoint::~DecisionPoint(){
 }
 
 
-Card DecisionPoint::makePlay(GameState * currGmSt){ // **MIGHT WANT TO RETURN CARD PLAYED, WHICH WILL BE IGNORED FOR ALL BUT THE TOP CALL TO MAKEPLAY
+Card DecisionPoint::makePlay(GameState * currGmSt){
 	int cardPlayed = -1;
 
 	// make tallyScores array w/ number of players & cards remaining as dimensions
@@ -34,37 +34,27 @@ Card DecisionPoint::makePlay(GameState * currGmSt){ // **MIGHT WANT TO RETURN CA
         newGmSt->genOpponentHands();
 		
 		// add card played
-		bool validPlay = newGmSt->playCard(i); // **THIS SHOULD HAVE THE VALIDPLAY CHECK, AND WILL JUST SKIP ALOT OF THE BELOW IF IT ISNT VALID PLAY**
-				// TODO: playCard needs to:
-					// 1. Check if play is valid 
-					// If it is:
-					// 2. Add card to playedCards 2d arrays
-					// 3. Remove card from players hand (and move the rest up? That's slow w/ an array so this should probably be a vector. Can then just swap to end and pop_back.)
-					// 4. Call updateNextToPlay 
-					// 4. return true 
-					// Else return false 
+		bool validPlay = newGmSt->playCard(newGmSt->getRound(), i);
 		
-		if (validPlay){
-			// update who is next to play
-			// newGmSt->updateNextToPlay(); **CALLED WITHIN PLAYCARD, ABOVE**
+		if (validPlay){ // if validPlay, then play has been made
 			
-			if (newGmSt->getNextToPlay() != -1){ // recursive case 
+			if (newGmSt->getNextToAct() != -1){ // recursive case 
 				// Create new node & call its makePlay function
-				auto * newNode = new DecisionPoint(newGmSt);
-				newNode->makePlay(newGmSt);
+				auto * newDPoint = new DecisionPoint(newGmSt);
+				newDPoint->makePlay(newGmSt);
 				
 				// Reach in to new node's scores array (w/ getter function?) and copy into tallyScores array
 				for (int j = 0; j < currGmSt->getNumPlyrs(); i++){
-					tallyScores[j][i] = newNode->getScore(j);
+					tallyScores[j][i] = newDPoint->getScore(j);
 				}
 				
 				// Delete that new node here?
-				delete newNode;
-				newNode = nullptr;
+				delete newDPoint;
+				newDPoint = nullptr;
 				
 			} else { // base case 
 				// End of game
-				tallyScores(&newGmSt, tallyScoresArray, i); // will use position member variable as well
+				tallyScores(&newGmSt, tallyScoresArray, i); // will use position member variable as well, which is in newGmSt
 			}
 		}
 		
@@ -76,8 +66,8 @@ Card DecisionPoint::makePlay(GameState * currGmSt){ // **MIGHT WANT TO RETURN CA
 	for (int i = 0; i < currGmSt->getCardsRemaining(); i++){
 		if (tallyScores[this->position][i] > scores[this->position]){
 			for (int j = 0; j < currGmSt->getNumPlyrs(); j++){
-				scores[j] = tallyScores[j][i];
-				cardPlayed = i; // ??????
+				scores[j] = tallyScores[j][i]; // TODO: Change '=' to '+=' when inside a loop for # of sims?
+				cardPlayed = i; // TODO: move out of this loop (& # sims loop) and make it the index of scores that mazimizes scores (once theres a # sims loop)
 			}
 		}
 	}
@@ -86,7 +76,7 @@ Card DecisionPoint::makePlay(GameState * currGmSt){ // **MIGHT WANT TO RETURN CA
 	for (int i = 0; i < currGmSt->getNumPlyrs(); i++){
 		delete [] tallyScores[i];
 	}
-	delete tallyScores;
+	delete [] tallyScores;
 
 
 	return *(plyrHands[currGmSt->getHeroPosition()][cardPlayed]);

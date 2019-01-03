@@ -51,7 +51,7 @@ void Game::simRound() {
             gmState->updateNextToAct();
 
         } else {
-                // Get user input for what player plays & update gameState
+            // Get user input for what player plays & update gameState
             std::cout << "What does the player in position " << gmState->getNextToAct() + 1 << " play?" << std::endl;
             std::cin >> cardPlayed; // TODO: Input validation
             gmState->addCardPlayed(cardPlayed);
