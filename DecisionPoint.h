@@ -1,8 +1,9 @@
 
 
-#ifndef CARDS_PLAYNODE_H
-#define CARDS_PLAYNODE_H
+#ifndef CARDS_DECISIONPOINT_H
+#define CARDS_DECISIONPOINT_H
 
+#include "Card.h"
 
 class DecisionPoint{
 public:
@@ -19,4 +20,4 @@ private:
 	void tallyScores(GameState * gmSt, int ** tallyScoresArray, int tallyScoreCol);
 };
 
-#endif //CARDS_PLAYNODE_H
+#endif //CARDS_DECISIONPOINT_H

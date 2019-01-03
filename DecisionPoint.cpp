@@ -3,9 +3,9 @@
 #include "DecisionPoint.h"
 
 DecisionPoint::DecisionPoint(GameState *currGmSt){
-	position = gmSt->getNextToAct();
+	position = currGmSt->getNextToAct();
 	scores = new std::vector<int>;
-	for (int i = 0; i < gmSt->getNumPlyrs(); i++){
+	for (int i = 0; i < currGmSt->getNumPlyrs(); i++){
 		scores->push_back(0);
 	}
 }
@@ -15,7 +15,9 @@ DecisionPoint::~DecisionPoint(){
 }
 
 
-void DecisionPoint::makePlay(GameState * currGmSt){ // **MIGHT WANT TO RETURN CARD PLAYED, WHICH WILL BE IGNORED FOR ALL BUT THE TOP CALL TO MAKEPLAY
+Card DecisionPoint::makePlay(GameState * currGmSt){ // **MIGHT WANT TO RETURN CARD PLAYED, WHICH WILL BE IGNORED FOR ALL BUT THE TOP CALL TO MAKEPLAY
+	int cardPlayed = -1;
+
 	// make tallyScores array w/ number of players & cards remaining as dimensions
 	int ** tallyScores = new int*[currGmSt->getNumPlyrs()];
 	for (int i = 0; i < currGmSt->getNumPlyrs(); i++){
@@ -27,6 +29,9 @@ void DecisionPoint::makePlay(GameState * currGmSt){ // **MIGHT WANT TO RETURN CA
 	for (int i = 0; i < currGmSt->getCardsRemaining(); i++){
 		// copy game state 
 		newGmSt = new GameState(*currGmSt);
+
+		// GEN OPPONENT HANDS
+        newGmSt->genOpponentHands();
 		
 		// add card played
 		bool validPlay = newGmSt->playCard(i); // **THIS SHOULD HAVE THE VALIDPLAY CHECK, AND WILL JUST SKIP ALOT OF THE BELOW IF IT ISNT VALID PLAY**
@@ -82,7 +87,9 @@ void DecisionPoint::makePlay(GameState * currGmSt){ // **MIGHT WANT TO RETURN CA
 		delete [] tallyScores[i];
 	}
 	delete tallyScores;
-	
+
+
+	return *(plyrHands[currGmSt->getHeroPosition()][cardPlayed]);
 }
 
 
