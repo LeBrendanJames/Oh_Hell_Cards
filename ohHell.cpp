@@ -57,6 +57,10 @@ int main(){
     game->simRound();
 
     game->printResults();
+
+    delete game;
+
+    return 0;
 }
 
 

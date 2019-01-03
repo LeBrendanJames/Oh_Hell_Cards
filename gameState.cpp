@@ -4,16 +4,14 @@
 
 GameState::GameState(int numPlyrs, int heroPosition, int totalCards, Card * flippedCard, Card ** heroHand) {
     this->numPlyrs = numPlyrs;
-    bids = new int[numPlyrs] {-1};
+    this->heroPosition = heroPosition - 1; // 0-based rather than 1-based
     this->totalCards = totalCards;
     this->numCardsRemaining = totalCards; // Assuming gameplay has not started
-    this->nextToAct = 0;
-    this->heroPosition = heroPosition - 1; // 0-based rather than 1-based
-    this->flippedCard = flippedCard;
     this->trump = flippedCard->getSuit();
-
+    this->nextToAct = 0;
+    bids = new int[numPlyrs] {-1};
     roundLead = new int[totalCards]();
-    roundLead[0] = 0; // Position 1 starts 1st round
+    roundLead[0] = 0; // Position 0 starts 1st round
 
     plyrHands = new Card**[numPlyrs];
     this->plyrHands[heroPosition] = heroHand;
@@ -23,29 +21,72 @@ GameState::GameState(int numPlyrs, int heroPosition, int totalCards, Card * flip
         }
     }
 
-    plydCrds = new Card**[numPlyrs];
-    for (int i = 0; i < numPlyrs; i++){
-        plydCrds[i] = new Card*[totalCards];
+    plydCrds = new Card**[totalCards];
+    for (int i = 0; i < totalCards; i++){
+        plydCrds[i] = new Card*[numPlyrs];
     }
 
+    this->flippedCard = flippedCard;
 }
 
 GameState::GameState(const GameState &oldGmSt){
     this->numPlyrs = oldGmSt.numPlyrs;
+    this->heroPosition = oldGmSt.heroPosition;
+    this->totalCards = oldGmSt.totalCards;
+    this->numCardsRemaining = oldGmSt.numCardsRemaining;
+    this->trump = oldGmSt.trump;
+    this->nextToAct = oldGmSt.nextToAct;
+
     this->bids = new int[this->numPlyrs];
     for (int i = 0; i < this->numPlyrs; i++){
         this->bids[i] = oldGmSt.bids[i];
     }
-    this->totalCards = oldGmSt.totalCards;
-    this->numCardsRemaining = oldGmSt.numCardsRemaining;
-    this->trump = oldGmSt.trump;
 
-    // previous cards played
+    this->roundLead = new int[this->totalCards];
+    for (int i = 0; i < this->totalCards; i++){
+        this->roundLead[i] = oldGmSt.roundLead[i];
+    }
 
+    this->plyrHands = new Card**[this->numPlyrs];
+    for (int i = 0; i < this->totalCards; i++){
+        this->plyrHands[i] = new Card*[this->numCardsRemaining];
+        for (int j = 0; j < this->numCardsRemaining; j++){
+            this->plyrHands[i][j] = new Card(*(oldGmSt.plyrHands[i][j]));
+        }
+    }
+
+    this->plydCrds = new Card**[this->totalCards];
+    for (int i = 0; i < this->totalCards; i++){
+        this->plydCrds[i] = new Card*[this->numPlyrs];
+        for (int j = 0; j < this->numPlyrs; j++){
+            this->plydCrds[i][j] = new Card(*(oldGmSt.plydCrds[i][j]));
+        }
+    }
+
+    this->flippedCard = new Card(*(oldGmSt.flippedCard));
 }
 
 GameState::~GameState(){
-    delete bids;
+    delete [] bids;
+    delete [] roundLead;
+
+    for (int i = 0; i < numPlyrs; i++){
+        for (int j = 0; j < totalCards; j++){
+            delete plyrHands[i][j];
+        }
+        delete [] plyrHands[i];
+    }
+    delete [] plyrHands;
+
+    for (int i = 0; i < totalCards; i++){
+        for (int j = 0; j < numPlyrs; j++){
+            delete plydCrds[i][j];
+        }
+        delete [] plydCrds[i];
+    }
+    delete [] plydCrds;
+
+    delete flippedCard;
 }
 
 
@@ -53,8 +94,8 @@ int GameState::getNumPlyrs(){
     return numPlyrs;
 }
 
-int GameState::getBid(int position){
-    return bids[position - 1];
+int GameState::getHeroPosition(){
+    return heroPosition;
 }
 
 int GameState::getTotalCards(){
@@ -69,8 +110,16 @@ Suit GameState::getTrump(){
     return trump;
 }
 
-int GameState::getHeroPosition(){
-    return heroPosition;
+int GameState::getNextToAct(){
+    return nextToAct;
+}
+
+int GameState::getBid(int position){
+    return bids[position - 1];
+}
+
+int GameState::getRoundLead(int roundNum){
+    return roundLead[roundNum];
 }
 
 void GameState::setBid(int position, int bid) {
@@ -89,8 +138,43 @@ void GameState::decCardsRemaining(){
     numCardsRemaining--;
 }
 
-int GameState::getNextToAct(){
-    return nextToAct;
+void GameState::genOpponentHands() {
+
+}
+
+bool GameState::playCard(int cardToPlay){
+    // 1. Check if play is valid
+    
+    // If it is:
+    if (isValidPlay) {
+        // 2. Add card to playedCards 2d arrays
+        addCardPlayed(plyrHands[heroPosition][cardToPlay]->getCardStr());
+        // 3. Remove card from players hand (and move the rest up? That's slow w/ an array so this should probably be a vector. Can then just swap to end and pop_back.)
+        removeCardFromHand(heroPosition, plyrHands[heroPosition][cardToPlay]->getCardStr());
+        // 4. Call updateNextToPlay
+        updateNextToAct();
+        // 5. return true
+        return true;
+    } else {
+        // Else return false
+        return false;
+    }
+}
+
+void GameState::addCardPlayed(std::string card){
+    //std::cout << "In 'GameState::addCardPlayed'" << std::endl;
+    plydCrds[totalCards - numCardsRemaining][nextToAct] = new Card(card);
+}
+
+
+void GameState::removeCardFromHand(int plyrPosition, std::string card){
+    for (int i = 0; i < totalCards; i++){
+        if (plyrHands[plyrPosition][i] != nullptr && plyrHands[plyrPosition][i]->getCardStr() == card){
+            delete plyrHands[plyrPosition][i];
+            plyrHands[plyrPosition][i] = nullptr;
+            break;
+        }
+    }
 }
 
 void GameState::updateNextToAct(){
@@ -101,11 +185,6 @@ void GameState::updateNextToAct(){
         nextToAct = findTrickWinner(totalCards - numCardsRemaining);
         decCardsRemaining();
     }
-}
-
-void GameState::addCardPlayed(std::string card){
-    //std::cout << "In 'GameState::addCardPlayed'" << std::endl;
-    plydCrds[totalCards - numCardsRemaining][nextToAct] = new Card(card);
 }
 
 int GameState::findTrickWinner(int trickNum){
@@ -144,14 +223,4 @@ int GameState::findTrickWinner(int trickNum){
     }
 
     return currWinningPosition;
-}
-
-void GameState::removeCardFromHand(int plyrPosition, std::string card){
-    for (int i = 0; i < totalCards; i++){
-        if (plyrHands[plyrPosition][i] != nullptr && plyrHands[plyrPosition][i]->getCardStr() == card){
-            delete plyrHands[plyrPosition][i];
-            plyrHands[plyrPosition][i] = nullptr;
-            break;
-        }
-    }
 }
