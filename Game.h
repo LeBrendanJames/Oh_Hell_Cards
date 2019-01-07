@@ -8,8 +8,8 @@
 
 #include <iostream>
 #include "GameState.h"
+#include "DecisionPoint.h"
 
-const int BID_CORRECT_BONUS = 10;
 const int NUM_SIMS = 1;
 
 

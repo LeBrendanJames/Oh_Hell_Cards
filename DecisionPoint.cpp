@@ -4,133 +4,181 @@
 
 DecisionPoint::DecisionPoint(GameState *currGmSt){
 	position = currGmSt->getNextToAct();
-	scores = new std::vector<int>;
+
 	for (int i = 0; i < currGmSt->getNumPlyrs(); i++){
-		scores->push_back(0);
+		scores.push_back(-1);
 	}
+
+	gmSt = new GameState(*currGmSt); // Gamestate copied when decisionPoint constructed
+
+    cardPlayed = nullptr;
 }
 
 DecisionPoint::~DecisionPoint(){
-	delete scores;
+	delete gmSt;
+	delete cardPlayed;
+}
+
+int DecisionPoint::getScore(int index){
+    if (index >= 0 && index < scores.size()) {
+        return scores[index];
+    } else {
+        return -1;
+    }
 }
 
 
-Card DecisionPoint::makePlay(GameState * currGmSt){
-	int cardPlayed = -1;
+void DecisionPoint::genOpponentHands() {
+    // TODO: Gen opponent hands needs to take into account the cards a player has already played
+    // For example, if Hearts is led and they didn't follow Hearts in a previous round, then they can't have hearts
+
+	int cardVal = -1, cardSuit = -1;
+	bool cardPrevUsed = true;
+
+	for (int i = 0; i < gmSt->getNumPlyrs(); i++){
+		if (i != gmSt->getHeroPosition()){
+			for (int j = 0; j < gmSt->getCardsRemaining(); j++){
+				// Generate random card, making sure it hasn't already been used
+				do {
+					cardVal = rand() % 13 + 1;
+					cardSuit = rand() % 4 + 1;
+					Card * tempCard = new Card(cardVal, cardSuit);
+
+					cardPrevUsed = gmSt->cardPrevUsed(tempCard->getCardStr());
+
+					delete tempCard;
+					tempCard = nullptr;
+				} while (cardPrevUsed);
+
+				// Add to plyrHands array
+                Card * cardToAdd = new Card(cardVal, cardSuit);
+                gmSt->addCardToPlyrHand(i, cardToAdd->getCardStr());
+                delete cardToAdd;
+                cardToAdd = nullptr;
+			}
+		}
+	}
+
+	// Print for testing
+    for (int i = 0; i < gmSt->getNumPlyrs(); i++){
+	    std::cout << "Player #" << i;
+	    for (int j = 0; j < gmSt->getCardsRemaining(); j++){
+	        std::cout << " " << gmSt->getCardFromPlyrHands(i, j)->getCardStr();
+	    }
+	    std::cout << std::endl;
+	}
+
+}
+
+Card* DecisionPoint::makePlay(){
 
 	// make tallyScores array w/ number of players & cards remaining as dimensions
-	int ** tallyScores = new int*[currGmSt->getNumPlyrs()];
-	for (int i = 0; i < currGmSt->getNumPlyrs(); i++){
-		tallyScores[i] = new int[currGmSt->getCardsRemaining()](); // ***Must be set all to 0 to start. I think this works...***
-	}
+	//int ** tallyScoresArray = new int*[gmSt->getNumPlyrs()];
+	//for (int i = 0; i < gmSt->getNumPlyrs(); i++){
+	//	tallyScoresArray[i] = new int[gmSt->getTotalCards()]{0}; //***Must be set all to 0 to start. I think this works...***
+	//}
+
+	//std::cout << "Made tallyScoresArray" << std::endl;
 	
 	GameState * newGmSt = nullptr;
-	
-	for (int i = 0; i < currGmSt->getCardsRemaining(); i++){
-		// copy game state 
-		newGmSt = new GameState(*currGmSt);
 
-		// GEN OPPONENT HANDS
-        newGmSt->genOpponentHands();
+	// Loop through all potential cards available
+    int numLoops = gmSt->getCardsRemaining();
+	for (int i = 0; i < numLoops; i++){
+	    std::cout << "Start of makePlay() loop. i = " << i << std::endl;
+		// copy game state
+        std::cout << "Copying gmSt to newGmSt" << std::endl;
+		newGmSt = new GameState(*gmSt);
+
+		std::cout << "Creating tempCardPlayed" << std::endl;
+		Card * tempCardPlayed = new Card(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), i)->getCardStr());
+		std::cout << "Testing card " << tempCardPlayed->getCardStr() << std::endl;
 		
 		// add card played
-		bool validPlay = newGmSt->playCard(newGmSt->getRound(), i);
+		bool validPlay = newGmSt->playCard(i);
 		
 		if (validPlay){ // if validPlay, then play has been made
 			
 			if (newGmSt->getNextToAct() != -1){ // recursive case 
 				// Create new node & call its makePlay function
+                std::cout << "Making new DecisionPoint" << std::endl;
 				auto * newDPoint = new DecisionPoint(newGmSt);
-				newDPoint->makePlay(newGmSt);
+
+				std::cout << "About to recursively call makePlay()." << std::endl;
+				newDPoint->makePlay();
+
+				std::cout << "Out of makePlay()." << std::endl;
+				std::cout << "Current best score: " << scores[this->position] << std::endl;
+				std::cout << "Score from new cardPlayed: " << newDPoint->getScore(this->position) << std::endl;
+				if (newDPoint->getScore(this->position) > scores[this->position]){
+				    std::cout << "New score better, so copying into scores array." << std::endl;
+				    // Update cardPlayed & scores array
+                    if (cardPlayed != nullptr){
+                        delete cardPlayed;
+                        cardPlayed = nullptr;
+                    }
+                    cardPlayed = new Card(tempCardPlayed->getCardStr());
+                    std::cout << "New card played = " << cardPlayed->getCardStr() << std::endl;
+                    for (int j = 0; j < gmSt->getNumPlyrs(); j++){
+                        scores[j] = newDPoint->getScore(j);
+                    }
+				}
 				
 				// Reach in to new node's scores array (w/ getter function?) and copy into tallyScores array
-				for (int j = 0; j < currGmSt->getNumPlyrs(); i++){
-					tallyScores[j][i] = newDPoint->getScore(j);
-				}
+				//for (int j = 0; j < gmSt->getNumPlyrs(); j++){
+                //    tallyScoresArray[j][i] = newDPoint->getScore(j);
+				//}
 				
 				// Delete that new node here?
 				delete newDPoint;
 				newDPoint = nullptr;
 				
-			} else { // base case 
+			} else { // base case
+			    std::cout << "Setting cardPlayed" << std::endl;
+			    cardPlayed = new Card(tempCardPlayed->getCardStr());
 				// End of game
-				tallyScores(&newGmSt, tallyScoresArray, i); // will use position member variable as well, which is in newGmSt
+                std::cout << "Calculating final scores within gmSt" << std::endl;
+                newGmSt->calcFinalScores();
+                std::cout << "Copying scores over to DecisionPoint" << std::endl;
+                for (int j = 0; j < gmSt->getNumPlyrs(); j++){
+                    scores[j] = newGmSt->getFinalScore(j); // copy scores from gmSt up to DecisionPoint
+                }
+                std::cout << "Through copying scores." << std::endl;
 			}
 		}
-		
+
+		std::cout << "Deleting tempCardPlayed" << std::endl;
+		delete tempCardPlayed;
+		tempCardPlayed = nullptr;
+
+		std::cout << "Deleting newGmSt" << std::endl;
 		delete newGmSt;
 		newGmSt = nullptr;
 	}
 	
 	// set scores array to most favorable of tallyScores output arrays (based on max score in tallyScoresArray @ playNode's position)
-	for (int i = 0; i < currGmSt->getCardsRemaining(); i++){
-		if (tallyScores[this->position][i] > scores[this->position]){
-			for (int j = 0; j < currGmSt->getNumPlyrs(); j++){
-				scores[j] = tallyScores[j][i]; // TODO: Change '=' to '+=' when inside a loop for # of sims?
-				cardPlayed = i; // TODO: move out of this loop (& # sims loop) and make it the index of scores that mazimizes scores (once theres a # sims loop)
-			}
-		}
-	}
+	//for (int i = 0; i < gmSt->getCardsRemaining(); i++){
+	//	if (tallyScoresArray[this->position][i] >= (*scores)[this->position]){
+    //        cardPlayed = i; // TODO: move out of this loop (& # sims loop) and make it the index of scores that mazimizes scores (once theres a # sims loop)
+	//		for (int j = 0; j < gmSt->getNumPlyrs(); j++){
+	//			(*scores)[j] = tallyScoresArray[j][i]; // TODO: Change '=' to '+=' when inside a loop for # of sims?
+	//		}
+	//	}
+	//}
 	
 	// delete tallyScoresArray (assuming I dynamically allocate it, above)
-	for (int i = 0; i < currGmSt->getNumPlyrs(); i++){
-		delete [] tallyScores[i];
+	//for (int i = 0; i < gmSt->getNumPlyrs(); i++){
+	//	delete [] tallyScoresArray[i];
+	//}
+	//delete [] tallyScoresArray;
+
+    std::cout << "Down to return stmt" << std::endl;
+	if (cardPlayed == nullptr){
+	    std::cout << "cardPlayed == nullptr" << std::endl;
 	}
-	delete [] tallyScores;
-
-
-	return *(plyrHands[currGmSt->getHeroPosition()][cardPlayed]);
+    std::cout << "Returning card: " << cardPlayed->getCardStr() << std::endl;
+    return cardPlayed;
+	//return *(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), cardPlayed));
 }
-
-
-void DecisionPoint::tallyScores(GameState * gmSt, int ** tallyScoresArray, int tallyScoreCol){
-	// GameState will be full with all bids and cards played, so should be a pretty simple tally of each trick then bonuses for tricks won = bid 
-	for (int i = 0; i < gmSt->getTotalCards(); i++){
-		int firstPosition = gmSt->getRoundLead(i); // TODO: Need to save who leads each round (or I guess who leads the first round - all others can be figured out from that)
-		
-		Card currWinningCard = cardsPlayed[i][firstPosition];
-		int currWinningPosition = firstPosition;
-		
-		int comparePosition = firstPosition + 1;
-		
-		for (int j = 1; j < gmSt->getNumPlyrs(); j++) { // Loop through other players, checking if their card is in the leads
-			if (isTrump(currWinningCard)){
-				if (isTrump(cardsPlayed[i][comparePosition])){
-					// compare values
-					if (cardsPlayed[i][comparePosition].value > currWinningCard.getVal()){
-						// make new card winning card 
-						currWinningCard = cardsPlayed[i][comparePosition];
-						currWinningPosition = comparePosition;
-					}
-				}
-			} else if (isTrump(cardsPlayed[i][comparePosition])){
-				// Make new card the winning card 
-				currWinningCard = cardsPlayed[i][comparePosition];
-				currWinningPosition = comparePosition;
-			} else if (cardsPlayed[i][comparePosition].value > currWinningCard.getVal()){
-				// Make new card the winning card 
-				currWinningCard = cardsPlayed[i][comparePosition];
-				currWinningPosition = comparePosition;
-
-			}
-			
-			comparePosition = (comparePosition + 1) % gmSt->getNumPlyrs(); // Finding next position, looping back to position 0 with the % math.
-		}
-		
-		// Add 1 to score of winning position 
-		tallyScoresArray[currWinningPosition][tallyScoreCol]++;
-	}
-
-	// check scores of each position versus their bids. Add 10 to score if they match.
-	for (int i = 0; i < gmSt->getNumPlyrs(); i++){
-		if (tallyScoresArray[i][tallyScoreCol] == gmSt->getBid(i)){
-			tallyScoresArray[i][tallyScoreCol] += BID_CORRECT_BONUS;
-		}
-	}
-	
-}
-
-
-
 
 

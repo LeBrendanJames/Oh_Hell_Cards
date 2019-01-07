@@ -5,7 +5,9 @@
 
 #include "Card.h"
 #include <iostream>
+#include <random>
 
+const int BID_CORRECT_BONUS = 10;
 
 class GameState{
 public:
@@ -22,18 +24,25 @@ public:
 	int getCurrRound();
     int getBid(int position);
     int getRoundLead(int roundNum);
+    int getFinalScore(int plyrPosiiton);
+    // getters for arrays
+    Card * getCardFromPlyrHands(int player, int cardPosition);
+    Card * getCardFromPlydCrds(int round, int position);
 
     void setBid(int position, int bid);
+    bool addCardToPlyrHand(int player, std::string card);
 
     bool isTrump(Card * card);
-    void decCardsRemaining();
-	void genOpponentHands();
-	bool playCard(int cardToPlay);
-	void addCardPlayed(std::string card);
-    void removeCardFromHand(int plyrPosition, std::string card);
-	void updateNextToAct();
-    int findTrickWinner(int trickNum);
 
+	bool playCard(int cardPositionInHand);
+    bool cardPrevUsed(std::string card);
+
+	bool calcFinalScores();
+
+
+    //void decCardsRemaining(); // Shouldn't be public, should just be done by GameState
+	//void genOpponentHands(); // Should be strictly in DecisionPoint
+	//bool playCard(int cardToPlay); // Should be strictly in DecisionPoint
 
 private:
     int numPlyrs;
@@ -50,9 +59,16 @@ private:
 	Card *** plyrHands; // 2d array with each row being a player and each column being a card
     Card *** plydCrds; // 2d array with each row being each successive round and each column being a player
 	Card * flippedCard;
+
+	int * finalScores;
 	
-	bool cardAlreadyUsed(int cardVal, int cardSuit); // Used in genOpponentHands 
+
 	bool checkValidPlay(int position, int cardToPlay); // Used in playCard
+
+    bool addCardToPlydCrds(int round, int position, std::string card);
+    bool removeCardFromPlyrHand(int plyrPosition, std::string card);
+    void updateNextToAct();
+    int findTrickWinner(int trickNum);
 };
 
 #endif //CARDS_GAMESTATE_H

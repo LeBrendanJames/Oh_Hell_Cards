@@ -57,8 +57,8 @@ Card::Card(const Card &oldCard){
 }
 
 // Operator== matches value and suit 
-bool operator== (Card const &rhCard){
-	if (value = rhCard.value && suit = rhCard.suit){
+bool Card::operator== (Card const &rhCard){
+	if (value == rhCard.value && suit == rhCard.suit){
 		return true;
 	}
 	
