@@ -238,7 +238,7 @@ bool GameState::calcFinalScores(){
 
         // GameState will be full with all bids and cards played,
         // so should be a pretty simple tally of each trick then bonuses for tricks won = bid
-        for (int i = 0; i < totalCards; i++){
+        for (int i = 0; i < totalCards; i++){ // Loop through rounds
             int firstPosition = roundLead[i];
 
             Card currWinningCard = *(plydCrds[i][firstPosition]);
@@ -250,7 +250,8 @@ bool GameState::calcFinalScores(){
                 if (isTrump(&currWinningCard)){
                     if (isTrump(plydCrds[i][comparePosition])){
                         // compare values
-                        if (plydCrds[i][comparePosition]->getVal() > currWinningCard.getVal()){
+                        if (*(plydCrds[i][comparePosition]) > currWinningCard){
+                        //if (plydCrds[i][comparePosition]->getVal() > currWinningCard.getVal()){
                             // make new card winning card
                             currWinningCard = *(plydCrds[i][comparePosition]);
                             currWinningPosition = comparePosition;
