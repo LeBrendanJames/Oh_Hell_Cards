@@ -93,9 +93,12 @@ Card* DecisionPoint::makePlay(){
 		std::cout << "Creating tempCardPlayed" << std::endl;
 		Card * tempCardPlayed = new Card(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), i)->getCardStr());
 		std::cout << "Testing card " << tempCardPlayed->getCardStr() << std::endl;
-		
+
+		std::cout << "About to playCard(i), i = " << i << std::endl;
 		// add card played
 		bool validPlay = newGmSt->playCard(i);
+
+		std::cout << "After playCard(i), i = " << i << std::endl;
 		
 		if (validPlay){ // if validPlay, then play has been made
 			
@@ -134,25 +137,31 @@ Card* DecisionPoint::makePlay(){
 				newDPoint = nullptr;
 				
 			} else { // base case
-			    std::cout << "Setting cardPlayed" << std::endl;
+			    std::cout << "In else stmt - bottoming out recursion" << std::endl;
+			    //std::cout << "Setting cardPlayed" << std::endl;
 			    cardPlayed = new Card(tempCardPlayed->getCardStr());
+			    //std::cout << "cardPlayed = " << cardPlayed->getCardStr() << std::endl;
 				// End of game
-                std::cout << "Calculating final scores within gmSt" << std::endl;
+                //std::cout << "Calculating final scores within gmSt" << std::endl;
                 newGmSt->calcFinalScores();
-                std::cout << "Copying scores over to DecisionPoint" << std::endl;
+                //std::cout << "Copying scores over to DecisionPoint" << std::endl;
                 for (int j = 0; j < gmSt->getNumPlyrs(); j++){
+                    //std::cout << "scores[j] (before copy) = " << scores[j] << std::endl;
+                    //std::cout << "finalScore[j] (from newGmSt) = " << newGmSt->getFinalScore(j) << std::endl;
                     scores[j] = newGmSt->getFinalScore(j); // copy scores from gmSt up to DecisionPoint
+                    //std::cout << "scores[j] (after copy) = " << scores[j] << std::endl;
                 }
-                std::cout << "Through copying scores." << std::endl;
+                //std::cout << "Through copying scores." << std::endl;
 			}
 		}
 
-		std::cout << "Deleting tempCardPlayed" << std::endl;
+		//std::cout << "Deleting tempCardPlayed" << std::endl;
 		delete tempCardPlayed;
 		tempCardPlayed = nullptr;
 
-		std::cout << "Deleting newGmSt" << std::endl;
+		//std::cout << "Deleting newGmSt" << std::endl;
 		delete newGmSt;
+		//std::cout << "Deleted newGmSt - looping to top" << std::endl;
 		newGmSt = nullptr;
 	}
 	
