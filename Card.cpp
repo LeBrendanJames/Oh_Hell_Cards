@@ -5,26 +5,28 @@
 
 Card::Card(std::string card){
 	// 1st character is value. Convert letter value to number or, if 2-9, convert from char directly to int
-    if (card[0] == 'A' || card[0] == 'a'){
+    char upperVal = toupper(card[0]);
+    if (upperVal == 'A'){
         value = 1;
-    } else if (card[0] == 'K' || card[0] == 'k'){
+    } else if (upperVal == 'K'){
         value = 13;
-    } else if (card[0] == 'Q' || card[0] == 'q'){
+    } else if (upperVal == 'Q'){
         value = 12;
-    } else if (card[0] == 'J' || card[0] == 'j'){
+    } else if (upperVal == 'J'){
         value = 11;
-    } else if (card[0] == 'T' || card[0] == 't'){
+    } else if (upperVal == 'T') {
         value = 10;
     } else {
-        value = card[0] - '0'; // converting character to int (works since char encoded as number)
+        value = card[0] - '0';
     }
 
 	// 2nd character is suit. Convert to Suit ENUM.
-    if (card[1] == 'C' || card[1] == 'c'){
+    upperVal = toupper(card[1]);
+    if (upperVal == 'C'){
         suit = Clubs;
-    } else if (card[1] == 'D' || card[1] == 'd'){
+    } else if (upperVal == 'D'){
         suit = Diamonds;
-    } else if (card[1] == 'H' || card[1] == 'h'){
+    } else if (upperVal == 'H'){
         suit = Hearts;
     } else {
         suit = Spades;

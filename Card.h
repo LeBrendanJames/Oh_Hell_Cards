@@ -1,12 +1,17 @@
-// CARD CLASS
-// Card class represents a playing card, with a value and suit.
-// Value and suit can be entered into constructor as string, individual numbers, or number for value + Suit ENUM for suit  
-// Values and suits can be accessed from getter functions, 
-// and the entire card string can be accessed with the 'getCardStr' member function
+/**************************************************************************************
+* CARD CLASS:
+* Card class represents a playing card, with a value and suit.
+* Value and suit can be entered into constructor as string, individual numbers,
+* or number for value + Suit ENUM for suit
+* Values and suits can be accessed from getter functions,
+* and the entire card string can be accessed with the 'getCardStr' member function
+ *************************************************************************************/
 
 #ifndef CARDS_CARD_H
 #define CARDS_CARD_H
 
+#include <stdio.h>
+#include <ctype.h>
 #include <string>
 
 enum Suit {Clubs, Diamonds, Hearts, Spades};
