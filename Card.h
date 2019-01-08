@@ -20,9 +20,9 @@ public:
     Card(const Card &oldCard);
     ~Card() = default;
 
-	bool operator== (Card const &rhCard);
-    bool operator< (Card const &rhCard);
-    bool operator> (Card const &rhCard);
+	bool operator== (Card const &rhCard); // Check val & suit equal
+    bool operator< (Card const &rhCard); // Adjusting for Ace value = 1, but greater than other cards
+    bool operator> (Card const &rhCard); // Adjusting for Ace value = 1, but greater than other cards
 
     int getVal();
     Suit getSuit();

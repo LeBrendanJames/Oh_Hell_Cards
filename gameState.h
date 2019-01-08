@@ -39,11 +39,6 @@ public:
 
 	bool calcFinalScores();
 
-
-    //void decCardsRemaining(); // Shouldn't be public, should just be done by GameState
-	//void genOpponentHands(); // Should be strictly in DecisionPoint
-	//bool playCard(int cardToPlay); // Should be strictly in DecisionPoint
-
 private:
     int numPlyrs;
     int heroPosition;

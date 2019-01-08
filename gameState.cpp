@@ -95,20 +95,13 @@ GameState::~GameState(){
     delete [] roundLead;
     delete [] finalScores;
 
-    //std::cout << "Deleted simple arrays" << std::endl;
-
-
     for (int i = 0; i < numPlyrs; i++){
-        //std::cout << "In 1st loop" << std::endl;
         for (int j = 0; j < numCardsRemaining; j++){
-            //std::cout << "In 2nd loop" << std::endl;
             delete plyrHands[i][j];
         }
         delete [] plyrHands[i];
     }
     delete [] plyrHands;
-
-    //std::cout << "Deleted plyrHands" << std::endl;
 
     for (int i = 0; i < totalCards; i++){
         for (int j = 0; j < numPlyrs; j++){
@@ -117,8 +110,6 @@ GameState::~GameState(){
         delete [] plydCrds[i];
     }
     delete [] plydCrds;
-
-    //std::cout << "Deleted plydCrds" << std::endl;
 
     delete flippedCard;
 }
@@ -202,24 +193,14 @@ bool GameState::isTrump(Card * card){
 }
 
 bool GameState::playCard(int cardToPlay){
-    //std::cout << "About to checkValidPlay" << std::endl;
-    //std::cout << "nextToAct = " << nextToAct << std::endl;
-    //std::cout << "cardToPlay (int) = " << cardToPlay << std::endl;
     bool isValidPlay = checkValidPlay(nextToAct, cardToPlay);
 
-    //std::cout << "Returned from checkValidPlay. isValidPlay = " << isValidPlay << std::endl;
-
     if (isValidPlay) {
-        //std::cout << "About to addCardToPlydCrds" << std::endl;
         addCardToPlydCrds(currRound, nextToAct, plyrHands[nextToAct][cardToPlay]->getCardStr());
-        //std::cout << "Done adding card to plydCrds" << std::endl;
-        //std::cout << "About to removeCardFromPlyrHand" << std::endl;
-        removeCardFromPlyrHand(nextToAct, plyrHands[nextToAct][cardToPlay]->getCardStr());
-        //std::cout << "Done with removeCardFromPlyrHand" << std::endl;
 
-        //std::cout << "About to updateNextToAct" << std::endl;
+        removeCardFromPlyrHand(nextToAct, plyrHands[nextToAct][cardToPlay]->getCardStr());
+
         updateNextToAct();
-        //std::cout << "Done with updateNextToAct" << std::endl;
 
         return true;
     } else {
@@ -251,7 +232,6 @@ bool GameState::calcFinalScores(){
                     if (isTrump(plydCrds[i][comparePosition])){
                         // compare values
                         if (*(plydCrds[i][comparePosition]) > currWinningCard){
-                        //if (plydCrds[i][comparePosition]->getVal() > currWinningCard.getVal()){
                             // make new card winning card
                             currWinningCard = *(plydCrds[i][comparePosition]);
                             currWinningPosition = comparePosition;
@@ -327,16 +307,6 @@ bool GameState::cardPrevUsed(std::string card){
 
 
 bool GameState::checkValidPlay(int position, int cardToPlay){
-    //std::cout << "In checkValidPlay" << std::endl;
-    //std::cout << "numCardsRemaining = " << numCardsRemaining << std::endl;
-    //std::cout << "currRound = " << currRound << std::endl;
-    //std::cout << "roundLead[currRound] = " << roundLead[currRound] << std::endl;
-    //if (cardToPlay >= 0 && cardToPlay < numCardsRemaining) {
-    //    std::cout << "plyrHands[position][cardToPlay]->getCardStr() = "
-    //                 << plyrHands[position][cardToPlay]->getCardStr()
-    //              << std::endl;
-    //}
-
     if (cardToPlay < 0 || cardToPlay >= numCardsRemaining){
         return false; // If cardToPlay outside range
     } else if (plyrHands[position][cardToPlay] == nullptr){
@@ -344,18 +314,13 @@ bool GameState::checkValidPlay(int position, int cardToPlay){
     } else if ((roundLead[currRound] == -1 || roundLead[currRound] == position)){
 		return true; // Play is automatically valid if it is leading the round 
 	} else {
-        //std::cout << "In final 'else' stmt" << std::endl;
 		bool valid = true; // default to true unless below check isn't satisfied
 
-        //std::cout << "About to get leadSuit" << std::endl;
 		// find roundLead suit
 		Suit leadSuit = plydCrds[currRound][roundLead[currRound]]->getSuit();
-
-		//std::cout << "Done getting leadSuit" << std::endl;
 		
 		// check if player in 'position' has any of that suit
 		for (int i = 0; i < numCardsRemaining; i++){
-		    //std::cout << "In loop" << std::endl;
 			if (plyrHands[position][i] != nullptr &&
                 plyrHands[position][i]->getSuit() == leadSuit &&
                 plyrHands[position][cardToPlay]->getSuit() != leadSuit){
