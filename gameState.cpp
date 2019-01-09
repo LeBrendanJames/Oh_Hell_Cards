@@ -211,29 +211,29 @@ bool GameState::playCard(int cardToPlay){
 bool GameState::calcFinalScores(){
     if (nextToAct != -1){
         return false; // Game not finished
-    } else {
-        for (int i = 0; i < numPlyrs; i++){
-            // Set to 0 points rather than -1, since each player starts on 0
-            // -1 was just an indicator that the round had not finished so final scores couldn't be calculated
-            finalScores[i] = 0;
-        }
-
-        for (int i = 0; i < totalCards; i++){ // Loop through rounds
-            int currWinningPosition = findTrickWinner(i);
-
-            // Add 1 to score of winning position
-            finalScores[currWinningPosition]++;
-        }
-
-        // check scores of each position versus their bids. Add bonus to score if they match.
-        for (int i = 0; i < numPlyrs; i++){
-            if (bids[i] == finalScores[i]){
-                finalScores[i] += BID_CORRECT_BONUS;
-            }
-        }
-
-        return true;
     }
+
+    for (int i = 0; i < numPlyrs; i++){
+        // Set to 0 points rather than -1, since each player starts on 0
+        // -1 was just an indicator that the round had not finished so final scores couldn't be calculated
+        finalScores[i] = 0;
+    }
+
+    for (int i = 0; i < totalCards; i++){ // Loop through rounds
+        int currWinningPosition = findTrickWinner(i);
+
+        // Add 1 to score of winning position
+        finalScores[currWinningPosition]++;
+    }
+
+    // check scores of each position versus their bids. Add bonus to score if they match.
+    for (int i = 0; i < numPlyrs; i++){
+        if (bids[i] == finalScores[i]){
+            finalScores[i] += BID_CORRECT_BONUS;
+        }
+    }
+
+    return true;
 }
 
 bool GameState::cardPrevUsed(std::string card){

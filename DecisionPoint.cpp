@@ -60,6 +60,7 @@ void DecisionPoint::genOpponentHands() {
 	}
 
 	// Print for testing
+    /*
     for (int i = 0; i < gmSt->getNumPlyrs(); i++){
 	    std::cout << "Player #" << i;
 	    for (int j = 0; j < gmSt->getCardsRemaining(); j++){
@@ -67,6 +68,7 @@ void DecisionPoint::genOpponentHands() {
 	    }
 	    std::cout << std::endl;
 	}
+     */
 
 }
 

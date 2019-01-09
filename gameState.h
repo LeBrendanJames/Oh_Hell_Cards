@@ -33,10 +33,8 @@ public:
     bool addCardToPlyrHand(int player, std::string card);
 
     bool isTrump(Card * card);
-
 	bool playCard(int cardPositionInHand);
     bool cardPrevUsed(std::string card);
-
 	bool calcFinalScores();
 
 private:
@@ -50,16 +48,13 @@ private:
 
     int * bids;
 	int * roundLead;
-	
+    int * finalScores;
+
 	Card *** plyrHands; // 2d array with each row being a player and each column being a card
     Card *** plydCrds; // 2d array with each row being each successive round and each column being a player
 	Card * flippedCard;
 
-	int * finalScores;
-	
-
 	bool checkValidPlay(int position, int cardToPlay); // Used in playCard
-
     bool addCardToPlydCrds(int round, int position, std::string card);
     bool removeCardFromPlyrHand(int plyrPosition, std::string card);
     void updateNextToAct();
