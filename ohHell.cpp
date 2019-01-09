@@ -78,7 +78,7 @@ int main(){
 	std::cout << std::endl;
 
 	std::cout << "Testing card creation - 'Th'" << std::endl;
-	Card * card = new Card("Th");
+	Card * card = new Card("th");
 	if (card->getVal() == 10){
 		std::cout << "TEST: Set Card Val From String - PASSED" << std::endl;
 		testsPassed++;
@@ -509,8 +509,8 @@ int main(){
         std::cout << "TEST: DecisionPoint constructor sets scores vector correctly - PASSED" << std::endl;
         testsPassed++;
     } else {
-           std::cout << "TEST: DecisionPoint constructor sets scores vector correctly - FAILED" << std::endl;
-           testsFailed++;
+       std::cout << "TEST: DecisionPoint constructor sets scores vector correctly - FAILED" << std::endl;
+       testsFailed++;
     }
     if (dPoint->getScore(20) == -1){
         std::cout << "TEST: Invalid index passed to getScore is caught and '-1' returned - PASSED" << std::endl;
@@ -522,7 +522,7 @@ int main(){
     std::cout << std::endl;
     std::cout << "Testing genOpponentHands():" << std::endl;
     dPoint->genOpponentHands();
-    std::cout << "Through generating opponent hands. Now testing makePlay()" << std::endl;
+
     Card * playRec = dPoint->makePlay();
     std::cout << "Recommended play: " << playRec->getCardStr() << std::endl;
 

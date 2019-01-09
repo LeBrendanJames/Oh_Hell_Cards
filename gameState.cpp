@@ -212,54 +212,20 @@ bool GameState::calcFinalScores(){
     if (nextToAct != -1){
         return false; // Game not finished
     } else {
-        // Can instead be done with memset?
         for (int i = 0; i < numPlyrs; i++){
+            // Set to 0 points rather than -1, since each player starts on 0
+            // -1 was just an indicator that the round had not finished so final scores couldn't be calculated
             finalScores[i] = 0;
         }
 
-        // GameState will be full with all bids and cards played,
-        // so should be a pretty simple tally of each trick then bonuses for tricks won = bid
         for (int i = 0; i < totalCards; i++){ // Loop through rounds
-            int firstPosition = roundLead[i];
-
-            Card currWinningCard = *(plydCrds[i][firstPosition]);
-            int currWinningPosition = firstPosition;
-
-            int comparePosition = (firstPosition + 1) % numPlyrs;
-
-            for (int j = 1; j < numPlyrs; j++) { // Loop through other players, checking if their card is in the leads
-                if (isTrump(&currWinningCard)){
-                    if (isTrump(plydCrds[i][comparePosition])){
-                        // compare values
-                        if (*(plydCrds[i][comparePosition]) > currWinningCard){
-                            // make new card winning card
-                            currWinningCard = *(plydCrds[i][comparePosition]);
-                            currWinningPosition = comparePosition;
-                        }
-                    }
-                } else if (isTrump(plydCrds[i][comparePosition])){
-                    // Make new card the winning card
-                    currWinningCard = *(plydCrds[i][comparePosition]);
-                    currWinningPosition = comparePosition;
-                } else if (plydCrds[i][comparePosition]->getVal() > currWinningCard.getVal()){
-                    // Make new card the winning card
-                    currWinningCard = *(plydCrds[i][comparePosition]);
-                    currWinningPosition = comparePosition;
-
-                }
-
-                comparePosition = (comparePosition + 1) % numPlyrs; // Finding next position, looping back to position 0 with the % math.
-            }
+            int currWinningPosition = findTrickWinner(i);
 
             // Add 1 to score of winning position
-            if (finalScores[currWinningPosition] == -1){
-                finalScores[currWinningPosition] = 1;
-            } else {
-                finalScores[currWinningPosition]++;
-            }
+            finalScores[currWinningPosition]++;
         }
 
-        // check scores of each position versus their bids. Add 10 to score if they match.
+        // check scores of each position versus their bids. Add bonus to score if they match.
         for (int i = 0; i < numPlyrs; i++){
             if (bids[i] == finalScores[i]){
                 finalScores[i] += BID_CORRECT_BONUS;
@@ -277,6 +243,7 @@ bool GameState::cardPrevUsed(std::string card){
 	// Check if card in plyrHands or plydCrds
     int i = 0, j = 0, k = 0;
     while (i < numPlyrs && !match){
+        // Check against cards in player hands
         j = 0;
         while (j < numCardsRemaining && !match){
             if (plyrHands[i][j] != nullptr && cardToCheck == *(plyrHands[i][j])) { // Order matters, null check first
@@ -285,6 +252,7 @@ bool GameState::cardPrevUsed(std::string card){
             j++;
         }
 
+        // Check against cards in plydCrds
         k = 0;
         while (k < totalCards && !match){
             if (plydCrds[k][i] != nullptr && cardToCheck == *(plydCrds[k][i])){ // Order matters, null check first
@@ -318,17 +286,18 @@ bool GameState::checkValidPlay(int position, int cardToPlay){
 
 		// find roundLead suit
 		Suit leadSuit = plydCrds[currRound][roundLead[currRound]]->getSuit();
-		
-		// check if player in 'position' has any of that suit
-		for (int i = 0; i < numCardsRemaining; i++){
-			if (plyrHands[position][i] != nullptr &&
-                plyrHands[position][i]->getSuit() == leadSuit &&
-                plyrHands[position][cardToPlay]->getSuit() != leadSuit){
 
-			    // player has suit to follow lead but isn't playing it = NOT VALID
-				valid = false;
-			}
-		}
+		// Find if player is not playing leadSuit
+        if (plyrHands[position][cardToPlay]->getSuit() != leadSuit){
+            int i = 0;
+            // Check all other cards in player hand to see if there is one that matches leadSuit
+            while (i < numCardsRemaining && valid == true){
+                if (plyrHands[position][i] != nullptr && plyrHands[position][i]->getSuit() == leadSuit){
+                    valid = false;
+                }
+                i++;
+            }
+        }
 
 		return valid;
 	}
@@ -346,12 +315,13 @@ bool GameState::addCardToPlydCrds(int round, int position, std::string card) {
 bool GameState::removeCardFromPlyrHand(int plyrPosition, std::string card){
     for (int i = 0; i < numCardsRemaining; i++){
         if (plyrHands[plyrPosition][i] != nullptr && plyrHands[plyrPosition][i]->getCardStr() == card){
+            // Remove card
             delete plyrHands[plyrPosition][i];
             plyrHands[plyrPosition][i] = nullptr;
 
+            // Move remaining cards down in array
             int j = i + 1;
             while (j < numCardsRemaining && plyrHands[plyrPosition][j] != nullptr){
-                // Move cards down
                 plyrHands[plyrPosition][j - 1] = plyrHands[plyrPosition][j];
                 j++; // move to next card
             }
@@ -380,32 +350,30 @@ void GameState::updateNextToAct(){
 }
 
 int GameState::findTrickWinner(int trickNum){
+    // Start with leading card winning trick
     Card * currWinningCard = plydCrds[trickNum][roundLead[trickNum]];
     int currWinningPosition = roundLead[trickNum];
 
     int comparePosition = (currWinningPosition + 1) % numPlyrs;
 
-    for (int i = 1; i < numPlyrs; i++) { // Loop through other players, checking if their card is in the leads
-        if (isTrump(currWinningCard)){
-            if (isTrump(plydCrds[trickNum][comparePosition])){
-                // compare values
-                if (*(plydCrds[trickNum][comparePosition]) > (*currWinningCard)){
-                    // make new card winning card
-                    currWinningCard = plydCrds[trickNum][comparePosition];
-                    currWinningPosition = comparePosition;
-                }
+    // Loop through other players, checking if their card beats the current winning card
+    while (comparePosition != roundLead[trickNum]){
+        // If suits match
+        if (plydCrds[trickNum][comparePosition]->getSuit() == currWinningCard->getSuit()){
+            // if newCard > oldCard
+            if (*(plydCrds[trickNum][comparePosition]) > *currWinningCard){
+                currWinningCard = plydCrds[trickNum][comparePosition];
+                currWinningPosition = comparePosition;
             }
-        } else if (isTrump(plydCrds[trickNum][comparePosition])){
-            // Make new card the winning card
-            currWinningCard = plydCrds[trickNum][comparePosition];
-            currWinningPosition = comparePosition;
-        } else if (*(plydCrds[trickNum][comparePosition]) > (*currWinningCard)){
-            // Make new card the winning card
+        // else if new card is trump and current winning card not trump
+        } else if (isTrump(plydCrds[trickNum][comparePosition]) && !isTrump(currWinningCard)){
+
             currWinningCard = plydCrds[trickNum][comparePosition];
             currWinningPosition = comparePosition;
         }
 
-        comparePosition = (comparePosition + 1) % numPlyrs; // Finding next position, looping back to position 0 with the % math.
+        // Finding next position to compare, looping back to position 0 with the % math.
+        comparePosition = (comparePosition + 1) % numPlyrs;
     }
 
     return currWinningPosition;
