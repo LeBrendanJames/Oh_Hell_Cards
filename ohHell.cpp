@@ -7,6 +7,9 @@
 #include "GameState.h"
 #include "DecisionPoint.h"
 
+// Function Prototypes
+int runNumSims(int numSims, GameState * gmSt);
+
 /*
 int main(){
 	// Get user input on current game
@@ -519,15 +522,67 @@ int main(){
         std::cout << "TEST: Invalid index passed to getScore is caught and '-1' returned - FAILED" << std::endl;
         testsFailed++;
     }
-    std::cout << std::endl;
-    std::cout << "Testing genOpponentHands():" << std::endl;
-    dPoint->genOpponentHands();
-
-    Card * playRec = dPoint->makePlay();
-    std::cout << "Recommended play: " << playRec->getCardStr() << std::endl;
-
     delete dPoint;
+    dPoint = nullptr;
+
+    std::cout << std::endl;
+    std::cout << "Testing genOpponentHands() and makePlay():" << std::endl;
+    /*
+    Card * playRec = nullptr;
+    int * scoreCounter[game->getCardsRemaining()] {0};
+    for (int i = 0; i < 100; i++){
+        dPoint = new DecisionPoint(game);
+        dPoint->genOpponentHands();
+        playRec = dPoint->makePlay();
+        for (int j = 0; j < game->getCardsRemaining(); j++){
+            if (*playRec == *(game->getCardFromPlyrHands(0, j))){
+                scoreCounter[j]++;
+            }
+        }
+
+        delete dPoint;
+        dPoint = nullptr;
+        playRec = nullptr;
+    }
+
+    int maxScoreCounter = 0;
+    for (int i = 1; i < game->getCardsRemaining(); i++){
+        if (scoreCounter[i] > scoreCounter[maxScoreCounter]){
+            maxScoreCounter = i;
+        }
+    }
+    */
+    int maxScoreCounter = runNumSims(100, game);
+    if (game->getCardFromPlyrHands(0, maxScoreCounter)->getCardStr() == "Ah"){
+        std::cout << "TEST: 100 DecisionPoint sims - recommendation correct - PASSED" << std::endl;
+        testsPassed++;
+    } else {
+        std::cout << "TEST: 100 DecisionPoint sims - recommendation correct - FAILED" << std::endl;
+        testsFailed++;
+    }
+
     delete game;
+    game = nullptr;
+    maxScoreCounter = 0;
+
+    std::cout << std::endl;
+    std::cout << "Testing different game sizes/hero cards/bid amounts/hero positions:" << std::endl;
+    game = new GameState(5, 0, 2, flippedCard, heroHand);
+    maxScoreCounter = runNumSims(100, game);
+    //dPoint = new DecisionPoint(game);
+    //dPoint->genOpponentHands();
+    //Card * playRec = dPoint->makePlay();
+    if (game->getCardFromPlyrHands(0, maxScoreCounter)->getCardStr() == "Ah"){
+        std::cout << "TEST: 5 player game (Hero cards 2h/Ah) correct recommendation - PASSED" << std::endl;
+        testsPassed++;
+    } else {
+        std::cout << "TEST: 5 player game (Hero cards 2h/Ah) correct recommendation - FAILED" << std::endl;
+        testsFailed++;
+    }
+    //delete dPoint;
+    //dPoint = nullptr;
+    //playRec = nullptr;
+
 
     std::cout << std::endl;
     std::cout << std::endl;
@@ -537,5 +592,32 @@ int main(){
 	return 0;
 }
 
+int runNumSims(int numSims, GameState * gmSt){
+    Card * playRec = nullptr;
+    DecisionPoint * dPoint = nullptr;
+    int * scoreCounter[gmSt->getCardsRemaining()] {0};
+    for (int i = 0; i < numSims; i++){
+        dPoint = new DecisionPoint(gmSt);
+        dPoint->genOpponentHands();
+        playRec = dPoint->makePlay();
+        for (int j = 0; j < gmSt->getCardsRemaining(); j++){
+            if (*playRec == *(gmSt->getCardFromPlyrHands(0, j))){
+                scoreCounter[j]++;
+            }
+        }
 
+        delete dPoint;
+        dPoint = nullptr;
+        playRec = nullptr;
+    }
+
+    int maxScoreCounter = 0;
+    for (int i = 1; i < gmSt->getCardsRemaining(); i++){
+        if (scoreCounter[i] > scoreCounter[maxScoreCounter]){
+            maxScoreCounter = i;
+        }
+    }
+
+    return maxScoreCounter;
+}
 
