@@ -23,6 +23,9 @@ private:
 	std::vector<int> scores;
 	GameState * gmSt;
 	Card * cardPlayed;
+	
+	void DecisionPoint::markInvalidSuits(int position, bool * validSuits);
+	bool DecisionPoint::isValidSuit(Card * card, bool * validSuits);
 };
 
 #endif //CARDS_DECISIONPOINT_H
