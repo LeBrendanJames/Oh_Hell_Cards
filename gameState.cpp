@@ -192,6 +192,16 @@ bool GameState::isTrump(Card * card){
     }
 }
 
+bool GameState::makeBid(int bid){
+	if (bid > 0 && bid <= totalCards){
+		bids[nextToAct] = bid;
+		updateNextToAct();
+		return true;
+	}
+	
+	return false;
+}
+
 bool GameState::playCard(int cardToPlay){
     bool isValidPlay = checkValidPlay(nextToAct, cardToPlay);
 

@@ -15,6 +15,7 @@ public:
 
 	int getScore(int index);
 
+	int makeBid();
 	void genOpponentHands();
 	Card* makePlay();
 

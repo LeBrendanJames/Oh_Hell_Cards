@@ -33,6 +33,7 @@ public:
     bool addCardToPlyrHand(int player, std::string card);
 
     bool isTrump(Card * card);
+	bool makeBid(int bid);
 	bool playCard(int cardPositionInHand);
     bool cardPrevUsed(std::string card);
 	bool calcFinalScores();

@@ -28,6 +28,62 @@ int DecisionPoint::getScore(int index){
 }
 
 
+int DecisionPoint::makeBid(){
+	int optimalBid = -1;
+	
+	// for bid = 0 to totalCards
+	for (int i  = 0; i < gmSt->getTotalCards(); i++){
+		// copy gameState
+		newGmSt = new GameState(*gmSt);
+		
+		DecisionPoint * newDPoint = nullptr; //new DecisionPoint(newGmSt);
+		
+		if gmSt->getBid(gmSt->getNextToAct()) == -1 {
+			// copiedGmSt->makeBid(i) // **THIS IS THE EQUIVALEND OF NEWGMST->PLAYCARD() IN MAKEPLAY()
+			newGmSt->makeBid(i);
+			
+			// make newDecisionPoint with copied gameState
+			newDPoint = new DecisionPoint(newGmSt); // Note: New DecisionPoint must be made after newGmSt has been updated with the bid so that it is simulating from the next player to act
+			
+			// newDPoint->makeBid()
+			newDPoint->makeBid();
+			
+		} else {
+			// make newDecisionPoint with copied gameState 
+			newDPoint = newDecisionPoint(newGmSt);
+			
+			// newDecisionPoint->makePlay()
+			newDPoint->makePlay(); // playCard (the equivalent of makeBid, above) happens within this function & updates newGmSt 
+			
+		}
+		
+		// Look @ scores here?
+		if (newDPoint->getScore(this->position) > scores[this->position]){
+			optimalBid = i;
+			/*
+			// Update cardPlayed & scores array
+			if (cardPlayed != nullptr){
+				delete cardPlayed;
+				cardPlayed = nullptr;
+			}
+			cardPlayed = new Card(tempCardPlayed->getCardStr());
+			*/
+			for (int j = 0; j < gmSt->getNumPlyrs(); j++){
+				scores[j] = newDPoint->getScore(j);
+			}
+		}
+		
+		// Delete that new DecisionPoint here
+		delete newDPoint;
+		newDPoint = nullptr;
+		
+	}
+		
+	
+	return optimalBid;
+}
+
+
 // TODO: More advanced card generation will take into account a player's bidirectional_iterator
 // For example, there is only some subset of hands that will optimally bid 0, so make sure
 // that the card generation algorithm generates one of that set of hands if the player has bid 0.
