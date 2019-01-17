@@ -579,9 +579,29 @@ int main(){
         std::cout << "TEST: 5 player game (Hero cards 2h/Ah) correct recommendation - FAILED" << std::endl;
         testsFailed++;
     }
-    //delete dPoint;
-    //dPoint = nullptr;
-    //playRec = nullptr;
+    delete game;
+    game = nullptr;
+
+    std::cout << std::endl;
+    std::cout << "Testing makeBid() recommendation:" << std::endl;
+    game = new GameState(4, 0, 2, flippedCard, heroHand);
+    //std::cout << "Current bids (just after game creation " << game->getBid(0) << ", ";
+    //std::cout << game->getBid(1) << ", " << game->getBid(2) << ", " << game->getBid(3) << std::endl;
+    dPoint = new DecisionPoint(game);
+    dPoint->genOpponentHands();
+    int optimalBid = dPoint->makeBid();
+    if (optimalBid == 2){
+        std::cout << "TEST: Optimal Bid with Ah/2h (trump Hearts) == 2 - PASSED" << std::endl;
+        testsPassed++;
+    } else {
+        std::cout << "TEST: Optimal Bid with Ah/2h (trump Hearts) == 2 - FAILED" << std::endl;
+        testsFailed++;
+    }
+    delete dPoint;
+    dPoint = nullptr;
+    delete game;
+    game = nullptr;
+
 
 
     std::cout << std::endl;

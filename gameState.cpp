@@ -10,9 +10,15 @@ GameState::GameState(int numPlyrs, int heroPosition, int totalCards, Card * flip
     this->trump = flippedCard->getSuit();
     this->nextToAct = 0;
     this->currRound = 0;
-    bids = new int[numPlyrs] {-1};
+    bids = new int[numPlyrs];
+    for (int i = 0; i < numPlyrs; i++){
+        bids[i] = -1;
+    }
 
-    roundLead = new int[totalCards]{-1};
+    roundLead = new int[totalCards];
+    for (int i = 0; i < totalCards; i++){
+        roundLead[i] = -1;
+    }
     roundLead[0] = 0; // Position 0 starts 1st round
 
     finalScores = new int[numPlyrs] {-1};
@@ -193,7 +199,7 @@ bool GameState::isTrump(Card * card){
 }
 
 bool GameState::makeBid(int bid){
-	if (bid > 0 && bid <= totalCards){
+	if (bid >= 0 && bid <= totalCards){
 		bids[nextToAct] = bid;
 		updateNextToAct();
 		return true;
@@ -347,7 +353,10 @@ bool GameState::removeCardFromPlyrHand(int plyrPosition, std::string card){
 void GameState::updateNextToAct(){
     nextToAct = (nextToAct + 1) % numPlyrs;
 
-	if (nextToAct == roundLead[totalCards - numCardsRemaining]){ // Trick over 
+    if (plydCrds[0][0] == nullptr){
+        // Means we're just finishing bid phase
+        return;
+    } else if (nextToAct == roundLead[totalCards - numCardsRemaining]){ // Trick over
         nextToAct = findTrickWinner(totalCards - numCardsRemaining);
         numCardsRemaining--;
 		if (numCardsRemaining != 0){ // If there are remaining tricks

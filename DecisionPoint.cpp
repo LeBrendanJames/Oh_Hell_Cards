@@ -32,25 +32,27 @@ int DecisionPoint::makeBid(){
 	int optimalBid = -1;
 	
 	// for bid = 0 to totalCards
-	for (int i  = 0; i < gmSt->getTotalCards(); i++){
+	for (int i  = 0; i <= gmSt->getTotalCards(); i++){
 		// copy gameState
-		newGmSt = new GameState(*gmSt);
+		GameState * newGmSt = new GameState(*gmSt);
 		
-		DecisionPoint * newDPoint = nullptr; //new DecisionPoint(newGmSt);
+		DecisionPoint * newDPoint = nullptr;
 		
-		if gmSt->getBid(gmSt->getNextToAct()) == -1 {
+		if (gmSt->getBid(gmSt->getNextToAct()) == -1) {
 			// copiedGmSt->makeBid(i) // **THIS IS THE EQUIVALEND OF NEWGMST->PLAYCARD() IN MAKEPLAY()
 			newGmSt->makeBid(i);
 			
 			// make newDecisionPoint with copied gameState
-			newDPoint = new DecisionPoint(newGmSt); // Note: New DecisionPoint must be made after newGmSt has been updated with the bid so that it is simulating from the next player to act
-			
+            // Note: New DecisionPoint must be made after newGmSt has been updated with the bid
+            // so that it is simulating from the next player to act
+			newDPoint = new DecisionPoint(newGmSt);
+
 			// newDPoint->makeBid()
 			newDPoint->makeBid();
 			
 		} else {
 			// make newDecisionPoint with copied gameState 
-			newDPoint = newDecisionPoint(newGmSt);
+			newDPoint = new DecisionPoint(newGmSt);
 			
 			// newDecisionPoint->makePlay()
 			newDPoint->makePlay(); // playCard (the equivalent of makeBid, above) happens within this function & updates newGmSt 
@@ -89,6 +91,7 @@ int DecisionPoint::makeBid(){
 // that the card generation algorithm generates one of that set of hands if the player has bid 0.
 void DecisionPoint::genOpponentHands() {
 	bool validSuits[4] {true};
+	bool validSuit = false;
 
 	int cardVal = -1, cardSuit = -1;
 	bool cardPrevUsed = true;
@@ -98,7 +101,7 @@ void DecisionPoint::genOpponentHands() {
 			for (int j = 0; j < 4; j++){
 				validSuits[j] = true;
 			}
-			markInvalidSuits(i, &validSuits);
+			markInvalidSuits(i, validSuits);
 			
 			for (int j = 0; j < gmSt->getCardsRemaining(); j++){
 				// Generate random card, making sure it hasn't already been used & its suit is valid (based on what player has previously played)
@@ -108,7 +111,7 @@ void DecisionPoint::genOpponentHands() {
 					Card * tempCard = new Card(cardVal, cardSuit);
 
 					cardPrevUsed = gmSt->cardPrevUsed(tempCard->getCardStr());
-					validSuit = isValidSuit(tempCard, invalidSuits);
+					validSuit = isValidSuit(tempCard, validSuits);
 
 					delete tempCard;
 					tempCard = nullptr;

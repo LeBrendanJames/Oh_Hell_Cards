@@ -25,8 +25,8 @@ private:
 	GameState * gmSt;
 	Card * cardPlayed;
 	
-	void DecisionPoint::markInvalidSuits(int position, bool * validSuits);
-	bool DecisionPoint::isValidSuit(Card * card, bool * validSuits);
+	void markInvalidSuits(int position, bool * validSuits);
+	bool isValidSuit(Card * card, bool * validSuits);
 };
 
 #endif //CARDS_DECISIONPOINT_H
