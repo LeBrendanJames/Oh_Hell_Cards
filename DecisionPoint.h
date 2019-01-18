@@ -24,7 +24,10 @@ private:
 	std::vector<int> scores;
 	GameState * gmSt;
 	Card * cardPlayed;
-	
+
+    void genHandCondtlOnBid(bool * validSuits, Card ** cardsToAdd, int plyrPos);
+    void genHand(bool * validSuits, Card ** cardsToAdd);
+	std::string genRandomCard(bool * validSuits);
 	void markInvalidSuits(int position, bool * validSuits);
 	bool isValidSuit(Card * card, bool * validSuits);
 };

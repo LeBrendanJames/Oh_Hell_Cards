@@ -90,39 +90,37 @@ int DecisionPoint::makeBid(){
 // For example, there is only some subset of hands that will optimally bid 0, so make sure
 // that the card generation algorithm generates one of that set of hands if the player has bid 0.
 void DecisionPoint::genOpponentHands() {
-	bool validSuits[4] {true};
-	bool validSuit = false;
+	bool validSuits[4];
+	std::string newCard;
 
-	int cardVal = -1, cardSuit = -1;
-	bool cardPrevUsed = true;
+	Card ** cardsToAdd = nullptr;
 
 	for (int i = 0; i < gmSt->getNumPlyrs(); i++){
 		if (i != gmSt->getHeroPosition()){
+		    // Set valid/invalid suits
 			for (int j = 0; j < 4; j++){
 				validSuits[j] = true;
 			}
 			markInvalidSuits(i, validSuits);
-			
-			for (int j = 0; j < gmSt->getCardsRemaining(); j++){
-				// Generate random card, making sure it hasn't already been used & its suit is valid (based on what player has previously played)
-				do {
-					cardVal = rand() % 13 + 1;
-					cardSuit = rand() % 4 + 1;
-					Card * tempCard = new Card(cardVal, cardSuit);
 
-					cardPrevUsed = gmSt->cardPrevUsed(tempCard->getCardStr());
-					validSuit = isValidSuit(tempCard, validSuits);
+			// Allocats space for cardsToAdd
+            cardsToAdd = new Card*[gmSt->getCardsRemaining()];
 
-					delete tempCard;
-					tempCard = nullptr;
-				} while (cardPrevUsed || !validSuit);
-
-				// Add to plyrHands array
-                Card * cardToAdd = new Card(cardVal, cardSuit);
-                gmSt->addCardToPlyrHand(i, cardToAdd->getCardStr());
-                delete cardToAdd;
-                cardToAdd = nullptr;
+            // Fill cardsToAdd based on vlaidSuits and maybe plyr bid
+			if (gmSt->getBid(i) != -1){
+			    genHandCondtlOnBid(validSuits, cardsToAdd, i);
+			} else {
+			    genHand(validSuits, cardsToAdd);
 			}
+
+            // Add cardsToAdd to gmSt and delete cardsToAdd memory
+            for (int j = 0; j < gmSt->getCardsRemaining(); j++){
+			    gmSt->addCardToPlyrHand(j, cardsToAdd[j]->getCardStr());
+			    delete cardsToAdd[j];
+			}
+			delete cardsToAdd;
+			cardsToAdd = nullptr;
+
 		}
 	}
 
@@ -137,6 +135,76 @@ void DecisionPoint::genOpponentHands() {
 	}
      */
 
+}
+
+void DecisionPoint::genHandCondtlOnBid(bool * validSuits, Card ** cardsToAdd, int plyrPos){
+    DecisionPoint * testDPoint = nullptr;
+
+    GameState * testGmSt = new GameState(*gmSt);
+
+    do {
+        genHand(validSuits, cardsToAdd);
+
+        testGmSt->chgPlyrView(plyrPos, cardsToAdd);
+
+        delete testDPoint;
+        testDPoint = nullptr;
+        testDPoint = new DecisionPoint(testGmSt);
+
+    } while (testDPoint->makeBid() != gmSt->getBid(plyrPos));
+
+    delete testGmSt;
+    testGmSt = nullptr;
+    delete testDPoint;
+    testDPoint = nullptr;
+}
+
+void DecisionPoint::genHand(bool * validSuits, Card ** cardsToAdd){
+    bool match = false;
+    std::string newCard;
+
+    for (int i = 0; i < gmSt->getCardsRemaining(); i++){
+        do {
+            match = false;
+
+            // Checks against all cards in gmSt
+            newCard = genRandomCard(validSuits);
+
+            // Check against random cards already generated for hand (not yet in gmSt)
+            for (int j = 0; j < i; j++){
+                if (newCard == cardsToAdd[j]->getCardStr()){
+                    match = true;
+                    break;
+                }
+            }
+        } while (match);
+
+        cardsToAdd[i] = new Card(newCard);
+    }
+}
+
+std::string DecisionPoint::genRandomCard(bool * validSuits){
+    std::string randCard;
+    int cardVal = -1, cardSuit = -1;
+    bool cardPrevUsed = true, validSuit = true;
+
+    // Generate random card, making sure it hasn't already been used
+    // & its suit is valid (based on what player has previously played)
+    do {
+        cardVal = rand() % 13 + 1;
+        cardSuit = rand() % 4 + 1;
+        Card *tempCard = new Card(cardVal, cardSuit);
+
+        cardPrevUsed = gmSt->cardPrevUsed(tempCard->getCardStr());
+        validSuit = isValidSuit(tempCard, validSuits);
+
+        randCard = tempCard->getCardStr();
+
+        delete tempCard;
+        tempCard = nullptr;
+    } while (cardPrevUsed || !validSuit);
+
+    return randCard;
 }
 
 // Function to mark suits that cannot be part of a player's generated random hand

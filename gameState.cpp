@@ -252,6 +252,30 @@ bool GameState::calcFinalScores(){
     return true;
 }
 
+void GameState::chgPlyrView(int newPosition, Card ** newPlyrHand){
+    heroPosition = newPosition;
+    nextToAct = newPosition;
+
+    // Reset bids for new hero and onyone bidding after nwe hero
+    for (int i = heroPosition; i < numPlyrs; i++){
+        bids[i] = -1;
+    }
+
+    // clear plyrHands
+    for (int i = 0; i < numPlyrs; i++){
+        for (int j = 0; j < numCardsRemaining; j++){
+            delete plyrHands[i][j];
+            plyrHands[i][j] = nullptr;
+        }
+    }
+
+    // Add passed in newPlyrHand
+    for (int i = 0; i < numCardsRemaining; i++){
+        plyrHands[heroPosition][i] = new Card(*(newPlyrHand[i]));
+    }
+
+}
+
 bool GameState::cardPrevUsed(std::string card){
 	Card cardToCheck(card);
 	bool match = false;

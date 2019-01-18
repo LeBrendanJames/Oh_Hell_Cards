@@ -37,6 +37,7 @@ public:
 	bool playCard(int cardPositionInHand);
     bool cardPrevUsed(std::string card);
 	bool calcFinalScores();
+	void chgPlyrView(int newPosition, Card ** newPlyrHand);
 
 private:
     int numPlyrs;
