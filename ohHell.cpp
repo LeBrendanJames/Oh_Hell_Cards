@@ -80,7 +80,7 @@ int main(){
 	std::cout << "-------------------------------------" << std::endl;
 	std::cout << std::endl;
 
-	std::cout << "Testing card creation - 'Th'" << std::endl;
+	std::cout << "Testing card creation - 'Th':" << std::endl;
 	Card * card = new Card("th");
 	if (card->getVal() == 10){
 		std::cout << "TEST: Set Card Val From String - PASSED" << std::endl;
@@ -107,7 +107,7 @@ int main(){
 	card = nullptr;
 
 	std::cout << std::endl;
-	std::cout << "Testing card creation - '3s'" << std::endl;
+	std::cout << "Testing card creation - '3s':" << std::endl;
     card = new Card("3s");
     if (card->getVal() == 3){
         std::cout << "TEST: Set Card Val From String - PASSED" << std::endl;
@@ -134,7 +134,7 @@ int main(){
     card = nullptr;
 
     std::cout << std::endl;
-    std::cout << "Testing '1, Hearts' card creation" << std::endl;
+    std::cout << "Testing '1, Hearts' card creation:" << std::endl;
 	card = new Card(1, Hearts);
 	if (card->getVal() == 1){
 		std::cout << "TEST: Set Card Val From Int - PASSED" << std::endl;
@@ -154,7 +154,7 @@ int main(){
 	card = nullptr;
 
 	std::cout << std::endl;
-    std::cout << "Testing '6, 1' (6d) card creation" << std::endl;
+    std::cout << "Testing '6, 1' (6d) card creation:" << std::endl;
     card = new Card(6, 2);
     if (card->getVal() == 6){
         std::cout << "TEST: Set Card Val From Int - PASSED" << std::endl;
@@ -176,7 +176,7 @@ int main(){
 
     // test copy constructor
     std::cout << std::endl;
-    std::cout << "Testing Card Copy Constructor" << std::endl;
+    std::cout << "Testing Card Copy Constructor:" << std::endl;
     card = new Card("Ah");
     Card * copiedCard = new Card(*card);
     if (card->getCardStr() == copiedCard->getCardStr()){
@@ -588,7 +588,7 @@ int main(){
     //std::cout << "Current bids (just after game creation " << game->getBid(0) << ", ";
     //std::cout << game->getBid(1) << ", " << game->getBid(2) << ", " << game->getBid(3) << std::endl;
     dPoint = new DecisionPoint(game);
-    dPoint->genOpponentHands();
+    //dPoint->genOpponentHands();
     int optimalBid = dPoint->makeBid();
     if (optimalBid == 2){
         std::cout << "TEST: Optimal Bid with Ah/2h (trump Hearts) == 2 - PASSED" << std::endl;
@@ -613,13 +613,17 @@ int main(){
 }
 
 int runNumSims(int numSims, GameState * gmSt){
+    std::cout << "In runNumSims" << std::endl;
     Card * playRec = nullptr;
     DecisionPoint * dPoint = nullptr;
     int * scoreCounter[gmSt->getCardsRemaining()] {0};
     for (int i = 0; i < numSims; i++){
+        std::cout << "Within sim loop" << std::endl;
         dPoint = new DecisionPoint(gmSt);
-        dPoint->genOpponentHands();
+        //dPoint->genOpponentHands();
+        std::cout << "About to call dPoint->makePlay()" << std::endl;
         playRec = dPoint->makePlay();
+        std::cout << "Out of makeplay()" << std::endl;
         for (int j = 0; j < gmSt->getCardsRemaining(); j++){
             if (*playRec == *(gmSt->getCardFromPlyrHands(0, j))){
                 scoreCounter[j]++;

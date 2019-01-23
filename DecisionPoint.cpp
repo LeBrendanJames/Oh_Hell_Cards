@@ -47,7 +47,6 @@ int DecisionPoint::makeBid(){
             // so that it is simulating from the next player to act
 			newDPoint = new DecisionPoint(newGmSt);
 
-			// newDPoint->makeBid()
 			newDPoint->makeBid();
 			
 		} else {
@@ -55,6 +54,7 @@ int DecisionPoint::makeBid(){
 			newDPoint = new DecisionPoint(newGmSt);
 			
 			// newDecisionPoint->makePlay()
+			std::cout << "About to call makePlay()" << std::endl;
 			newDPoint->makePlay(); // playCard (the equivalent of makeBid, above) happens within this function & updates newGmSt 
 			
 		}
@@ -90,13 +90,61 @@ int DecisionPoint::makeBid(){
 // For example, there is only some subset of hands that will optimally bid 0, so make sure
 // that the card generation algorithm generates one of that set of hands if the player has bid 0.
 void DecisionPoint::genOpponentHands() {
+    //std::cout << "In genOpponentHands" << std::endl;
 	bool validSuits[4];
 	std::string newCard;
 
 	Card ** cardsToAdd = nullptr;
 
+	// **could just gen random hands for all positions and rotate any opposing player hands
+    // until we have 100 samples of all players previous to hero bidding the correct amount.
+    // Then, check that player in question bid correctly on at least 70 of those**
+
 	for (int i = 0; i < gmSt->getNumPlyrs(); i++){
 		if (i != gmSt->getHeroPosition()){
+		    // while !validHandForPosThatBidsCorrectly
+            bool validGeneratedHand = false;
+            while (!validGeneratedHand) {
+                // copy gameState
+                GameState * newGameState = new GameState(*gmSt);
+                // gen random hand for position in question (checking that it would satisfy actual gameState)
+                genHand(validSuits, cardsToAdd);
+                // add cardsToAdd to new gameState
+                
+                // change View
+                newGameState->chgPlyrView(i, newPlyrHand);
+                int correctPrevBids = 0;
+                // while count correctPrevBids < 100
+                while (correctPrevBids < 100) {
+                    // gen random hands for everybody (except position in question)
+                    // run simulation
+                    // check whether previous bids were correct and tally whether player in question optimal bid is correct
+                    bidMatch = true;
+                    for (int j = 0; j < i; j++){
+                        if (gmSt->getBid(j) != newGameState->getBid(j)){
+                            bidMatch = false;
+                        }
+                    }
+                    if (bidMatch){
+                        correctPrevBids++;
+                    }
+                }
+                // Copy out hand in question if it'll work
+                if (correctPlyrBid > correctPrevBids * 0.7){
+                    // copy out hand
+                    validGeneratedHand = true;
+                }
+                // delete copied gameState
+                delete newGameState;
+                newGameState = nullptr;
+            }
+
+            // put hand in question into actual gameState
+
+
+
+
+
 		    // Set valid/invalid suits
 			for (int j = 0; j < 4; j++){
 				validSuits[j] = true;
@@ -108,8 +156,10 @@ void DecisionPoint::genOpponentHands() {
 
             // Fill cardsToAdd based on vlaidSuits and maybe plyr bid
 			if (gmSt->getBid(i) != -1){
+			    //std::cout << "Calling genHandCondtlOnBid" << std::endl;
 			    genHandCondtlOnBid(validSuits, cardsToAdd, i);
 			} else {
+			    //std::cout << "Calling genHand" << std::endl;
 			    genHand(validSuits, cardsToAdd);
 			}
 
@@ -125,7 +175,6 @@ void DecisionPoint::genOpponentHands() {
 	}
 
 	// Print for testing
-    /*
     for (int i = 0; i < gmSt->getNumPlyrs(); i++){
 	    std::cout << "Player #" << i;
 	    for (int j = 0; j < gmSt->getCardsRemaining(); j++){
@@ -133,7 +182,7 @@ void DecisionPoint::genOpponentHands() {
 	    }
 	    std::cout << std::endl;
 	}
-     */
+
 
 }
 
@@ -142,8 +191,13 @@ void DecisionPoint::genHandCondtlOnBid(bool * validSuits, Card ** cardsToAdd, in
 
     GameState * testGmSt = new GameState(*gmSt);
 
+    //std::cout << "In genHandCondtlOnBid. Trying to get bid of " << gmSt->getBid(plyrPos) << std::endl;
+
     do {
+        //std::cout << "About to generate a random hand" << std::endl;
         genHand(validSuits, cardsToAdd);
+
+        //std::cout << "Generated hand. 1st Card: " << cardsToAdd[0]->getCardStr() << std::endl;
 
         testGmSt->chgPlyrView(plyrPos, cardsToAdd);
 
@@ -151,7 +205,14 @@ void DecisionPoint::genHandCondtlOnBid(bool * validSuits, Card ** cardsToAdd, in
         testDPoint = nullptr;
         testDPoint = new DecisionPoint(testGmSt);
 
-    } while (testDPoint->makeBid() != gmSt->getBid(plyrPos));
+        std::cout << "About to call testDPoint->makeBid()" << std::endl;
+        int bidRec = testDPoint->makeBid();
+        std::cout << "bidRec: " << bidRec << std::endl;
+
+    } while (bidRec != gmSt->getBid(plyrPos));
+    //} while (testDPoint->makeBid() != gmSt->getBid(plyrPos));
+
+    std::cout << "Out of do while loop in genHandCondtlOnBid" << std::endl;
 
     delete testGmSt;
     testGmSt = nullptr;
@@ -239,6 +300,17 @@ bool DecisionPoint::isValidSuit(Card * card, bool * validSuits){
 
 Card* DecisionPoint::makePlay(){
 	GameState * newGmSt = nullptr;
+
+	// Check whether hands have been generated
+    //std::cout << "Checking allHandsFull()" << std::endl;
+    if (!gmSt->allHandsFull()){
+        //std::cout << "allHandsFull returned false. Generating hands" << std::endl;
+        // run genHands
+        genOpponentHands();
+        //std::cout << "Done with genHands" << std::endl;
+    } else {
+        std::cout << "allHandsFull returned true" << std::endl;
+    }
 
 	// Loop through all potential cards available
     int numLoops = gmSt->getCardsRemaining();

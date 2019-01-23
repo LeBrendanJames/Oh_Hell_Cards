@@ -16,7 +16,6 @@ public:
 	int getScore(int index);
 
 	int makeBid();
-	void genOpponentHands();
 	Card* makePlay();
 
 private:
@@ -25,6 +24,7 @@ private:
 	GameState * gmSt;
 	Card * cardPlayed;
 
+    void genOpponentHands();
     void genHandCondtlOnBid(bool * validSuits, Card ** cardsToAdd, int plyrPos);
     void genHand(bool * validSuits, Card ** cardsToAdd);
 	std::string genRandomCard(bool * validSuits);

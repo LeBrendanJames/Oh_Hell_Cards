@@ -262,18 +262,30 @@ void GameState::chgPlyrView(int newPosition, Card ** newPlyrHand){
     }
 
     // clear plyrHands
-    for (int i = 0; i < numPlyrs; i++){
+    //for (int i = 0; i < numPlyrs; i++){
         for (int j = 0; j < numCardsRemaining; j++){
-            delete plyrHands[i][j];
-            plyrHands[i][j] = nullptr;
+            //delete plyrHands[i][j];
+            //plyrHands[i][j] = nullptr;
+            delete plyrHands[heroPosition][j];
+            plyrHands[heroPosition][j] = nullptr;
         }
-    }
+    //}
 
     // Add passed in newPlyrHand
     for (int i = 0; i < numCardsRemaining; i++){
         plyrHands[heroPosition][i] = new Card(*(newPlyrHand[i]));
     }
 
+}
+
+bool GameState::allHandsFull(){
+    for (int i = 0; i < numPlyrs; i++){
+        if (plyrHands[i][0] == nullptr){
+            return false;
+        }
+    }
+
+    return true;
 }
 
 bool GameState::cardPrevUsed(std::string card){
