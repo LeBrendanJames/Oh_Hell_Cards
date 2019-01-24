@@ -257,9 +257,9 @@ void GameState::chgPlyrView(int newPosition, Card ** newPlyrHand){
     nextToAct = newPosition;
 
     // Reset bids for new hero and onyone bidding after nwe hero
-    for (int i = heroPosition; i < numPlyrs; i++){
-        bids[i] = -1;
-    }
+    //for (int i = heroPosition; i < numPlyrs; i++){
+    //    bids[i] = -1;
+    //}
 
     // clear plyrHands
     //for (int i = 0; i < numPlyrs; i++){
@@ -279,6 +279,25 @@ void GameState::chgPlyrView(int newPosition, Card ** newPlyrHand){
 }
 
 bool GameState::allHandsFull(){
+    /*int cardCount = 0;
+
+    for (int i = 0; i < numPlyrs; i++){
+        for (int j = 0; j < totalCards; j++){
+            if (plydCrds[i][j] != nullptr){
+                cardCount++;
+            }
+            if (plyrHands[i][j] != nullptr){
+                cardCount++;
+            }
+        }
+    }
+
+    if (cardCount == numPlyrs * numCardsRemaining){
+        return true;
+    } else {
+        return false;
+    }*/
+    
     for (int i = 0; i < numPlyrs; i++){
         if (plyrHands[i][0] == nullptr){
             return false;

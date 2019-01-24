@@ -25,9 +25,9 @@ private:
 	Card * cardPlayed;
 
     void genOpponentHands();
-    void genHandCondtlOnBid(bool * validSuits, Card ** cardsToAdd, int plyrPos);
-    void genHand(bool * validSuits, Card ** cardsToAdd);
-	std::string genRandomCard(bool * validSuits);
+    //void genHandCondtlOnBid(bool * validSuits, Card ** cardsToAdd, int plyrPos);
+    void genHand(bool * validSuits, Card ** cardsToAdd, GameState * newGmSt);
+	std::string genRandomCard(bool * validSuits, GameState * newGmSt);
 	void markInvalidSuits(int position, bool * validSuits);
 	bool isValidSuit(Card * card, bool * validSuits);
 };
