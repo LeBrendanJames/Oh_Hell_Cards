@@ -8,7 +8,8 @@
 #include "DecisionPoint.h"
 
 // Function Prototypes
-int runNumSims(int numSims, GameState * gmSt);
+int runPlaySims(int numSims, GameState * gmSt);
+int runBidSims(int numSims, GameState * gmSt);
 
 /*
 int main(){
@@ -223,14 +224,6 @@ int main(){
 		std::cout << "TEST: GameState Constructor Set cardsRemaining - FAILED" << std::endl;
 		testsFailed++;
 	}
-	/*game->decCardsRemaining();
-	if (game->getCardsRemaining() == 1){
-		std::cout << "TEST: decCardsRemaining - PASSED" << std::endl;
-		testsPassed++;
-	} else {
-		std::cout << "TEST: decCardsRemaining - FAILED" << std::endl;
-		testsFailed++;
-	}*/
 	if (game->getBid(0) == -1){
 		std::cout << "TEST: GameState Constructor Set Default Bids to -1 - PASSED" << std::endl;
 		testsPassed++;
@@ -281,6 +274,16 @@ int main(){
 	}
 	delete card;
 	card = nullptr;
+	delete game;
+	game = nullptr;
+	game = new GameState(4, 1, 2, flippedCard, heroHand);
+	if (game->getCardFromPlyrHands(1, 0)->getCardStr() == "2h"){
+	    std::cout << "TEST: hero in position 1 - Hero hand in correct place - PASSED" << std::endl;
+	    testsPassed++;
+	} else {
+        std::cout << "TEST: hero in position 1 - Hero hand in correct place - FAILED" << std::endl;
+	    testsFailed++;
+	}
 	delete game;
 	game = nullptr;
 
@@ -552,7 +555,7 @@ int main(){
         }
     }
     */
-    int maxScoreCounter = runNumSims(100, game);
+    int maxScoreCounter = runPlaySims(100, game);
     if (game->getCardFromPlyrHands(0, maxScoreCounter)->getCardStr() == "Ah"){
         std::cout << "TEST: 100 DecisionPoint sims - recommendation correct - PASSED" << std::endl;
         testsPassed++;
@@ -568,10 +571,7 @@ int main(){
     std::cout << std::endl;
     std::cout << "Testing different game sizes/hero cards/bid amounts/hero positions:" << std::endl;
     game = new GameState(5, 0, 2, flippedCard, heroHand);
-    maxScoreCounter = runNumSims(100, game);
-    //dPoint = new DecisionPoint(game);
-    //dPoint->genOpponentHands();
-    //Card * playRec = dPoint->makePlay();
+    maxScoreCounter = runPlaySims(100, game);
     if (game->getCardFromPlyrHands(0, maxScoreCounter)->getCardStr() == "Ah"){
         std::cout << "TEST: 5 player game (Hero cards 2h/Ah) correct recommendation - PASSED" << std::endl;
         testsPassed++;
@@ -582,14 +582,37 @@ int main(){
     delete game;
     game = nullptr;
 
+    game = new GameState(5, 1, 2, flippedCard, heroHand);
+    game->makeBid(0);
+    game->makeBid(2);
+    game->makeBid(0);
+    game->makeBid(0);
+    game->makeBid(0);
+    game->addCardToPlyrHand(0, "Kh");
+    game->playCard(0);
+    maxScoreCounter = runPlaySims(100, game);
+    if (game->getCardFromPlyrHands(1, maxScoreCounter)->getCardStr() == "Ah"){
+        std::cout << "TEST: 5 player game (Hero 2nd pos, cards 2h/Ah) correct rec - PASSED" << std::endl;
+        testsPassed++;
+    } else {
+        std::cout << "TEST: 5 player game (Hero 2nd pos, cards 2h/Ah) correct rec - FAILED" << std::endl;
+        testsFailed++;
+    }
+    delete game;
+    game = nullptr;
+
+
+
+
     std::cout << std::endl;
     std::cout << "Testing makeBid() recommendation:" << std::endl;
     game = new GameState(4, 0, 2, flippedCard, heroHand);
     //std::cout << "Current bids (just after game creation " << game->getBid(0) << ", ";
     //std::cout << game->getBid(1) << ", " << game->getBid(2) << ", " << game->getBid(3) << std::endl;
-    dPoint = new DecisionPoint(game);
-    dPoint->genOpponentHands();
-    int optimalBid = dPoint->makeBid();
+    //dPoint = new DecisionPoint(game);
+    //dPoint->genOpponentHands();
+    //int optimalBid = dPoint->makeBid();
+    int optimalBid = runBidSims(100, game);
     if (optimalBid == 2){
         std::cout << "TEST: Optimal Bid with Ah/2h (trump Hearts) == 2 - PASSED" << std::endl;
         testsPassed++;
@@ -597,12 +620,49 @@ int main(){
         std::cout << "TEST: Optimal Bid with Ah/2h (trump Hearts) == 2 - FAILED" << std::endl;
         testsFailed++;
     }
-    delete dPoint;
-    dPoint = nullptr;
+    //delete dPoint;
+    //dPoint = nullptr;
     delete game;
     game = nullptr;
 
+    game = new GameState(3, 1, 2, flippedCard, heroHand);
+    game->makeBid(0);
+    //dPoint = new DecisionPoint(game);
+    //dPoint->genOpponentHands();
+    //optimalBid = 0;
+    //optimalBid = dPoint->makeBid();
+    optimalBid = runBidSims(100, game);
+    if (optimalBid == 2){
+        std::cout << "TEST: Optimal Bid from 2nd pos with Ah/2h (trump Hearts) == 2 - PASSED" << std::endl;
+        testsPassed++;
+    } else {
+        std::cout << "TEST: Optimal Bid from 2nd pos with Ah/2h (trump Hearts) == 2 - FAILED" << std::endl;
+        testsFailed++;
+    }
+    //delete dPoint;
+    //dPoint = nullptr;
+    delete game;
+    game = nullptr;
 
+    game = new GameState(3, 2, 2, flippedCard, heroHand);
+    game->makeBid(0);
+    game->makeBid(0);
+    //dPoint = new DecisionPoint(game);
+    //dPoint->genOpponentHands();
+    //optimalBid = 0;
+    //optimalBid = dPoint->makeBid();
+    optimalBid = runBidSims(100, game);
+    if (optimalBid == 2){
+        std::cout << "TEST: Optimal Bid from 3rd pos with Ah/2h (trump Hearts) == 2 - PASSED" << std::endl;
+        testsPassed++;
+    } else {
+        std::cout << "TEST: Optimal Bid from 3rd pos with Ah/2h (trump Hearts) == 2 - FAILED" << std::endl;
+        testsFailed++;
+    }
+    //delete dPoint;
+    //dPoint = nullptr;
+    delete game;
+    game = nullptr;
 
     std::cout << std::endl;
     std::cout << std::endl;
@@ -612,16 +672,19 @@ int main(){
 	return 0;
 }
 
-int runNumSims(int numSims, GameState * gmSt){
+int runPlaySims(int numSims, GameState * gmSt){
+    //std::cout << "In runPlaySims" << std::endl;
     Card * playRec = nullptr;
     DecisionPoint * dPoint = nullptr;
     int * scoreCounter[gmSt->getCardsRemaining()] {0};
     for (int i = 0; i < numSims; i++){
         dPoint = new DecisionPoint(gmSt);
         dPoint->genOpponentHands();
+        //std::cout << "Through genOpponentHands" << std::endl;
         playRec = dPoint->makePlay();
+        //std::cout << "Through makePlay. playRec = " << playRec->getCardStr() << std::endl;
         for (int j = 0; j < gmSt->getCardsRemaining(); j++){
-            if (*playRec == *(gmSt->getCardFromPlyrHands(0, j))){
+            if (*playRec == *(gmSt->getCardFromPlyrHands(gmSt->getHeroPosition(), j))){
                 scoreCounter[j]++;
             }
         }
@@ -633,6 +696,30 @@ int runNumSims(int numSims, GameState * gmSt){
 
     int maxScoreCounter = 0;
     for (int i = 1; i < gmSt->getCardsRemaining(); i++){
+        if (scoreCounter[i] > scoreCounter[maxScoreCounter]){
+            maxScoreCounter = i;
+        }
+    }
+
+    return maxScoreCounter;
+}
+
+int runBidSims(int numSims, GameState * gmSt){
+    DecisionPoint * dPoint = nullptr;
+    int * scoreCounter[gmSt->getCardsRemaining() + 1] {0};
+    for (int i = 0; i < numSims; i++){
+        dPoint = new DecisionPoint(gmSt);
+        dPoint->genOpponentHands();
+        //std::cout << "Through genOpponentHands" << std::endl;
+        // Add 1 to index array of whatever bid is recommended
+        scoreCounter[dPoint->makeBid()]++;
+
+        delete dPoint;
+        dPoint = nullptr;
+    }
+
+    int maxScoreCounter = 0;
+    for (int i = 1; i <= gmSt->getCardsRemaining(); i++){
         if (scoreCounter[i] > scoreCounter[maxScoreCounter]){
             maxScoreCounter = i;
         }
