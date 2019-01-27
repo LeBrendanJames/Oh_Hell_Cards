@@ -252,6 +252,40 @@ bool GameState::calcFinalScores(){
     return true;
 }
 
+bool GameState::allHandsGenerated(){
+    //std::cout << "In GameState::allHandsGenerated()" << std::endl;
+    int cardCount = 0, cardCountFromHands = 0, cardCountFromPlyd = 0;
+
+    for (int i = 0; i < numPlyrs; i++){
+        for (int j = 0; j < numCardsRemaining; j++){
+            if (plyrHands[i][j] != nullptr){
+                cardCount++;
+                cardCountFromHands++;
+            }
+
+        }
+        for (int j = 0; j < totalCards; j++){
+            if (plydCrds[j][i] != nullptr){
+                cardCount++;
+                cardCountFromPlyd++;
+            }
+        }
+    }
+
+    //std::cout << "cardCount = " << cardCount << std::endl;
+    //std::cout << "cardCountFromHands = " << cardCountFromHands << std::endl;
+    //std::cout << "cardCountFromPlyd = " << cardCountFromPlyd << std::endl;
+    //std::cout << "numPlyrs * totalCards = " << numPlyrs * totalCards << std::endl;
+
+    if (cardCount == numPlyrs * totalCards){
+        //std::cout << "Returning true" << std::endl;
+        return true;
+    } else {
+        //std::cout << "Returning false" << std::endl;
+        return false;
+    }
+}
+
 bool GameState::cardPrevUsed(std::string card){
 	Card cardToCheck(card);
 	bool match = false;

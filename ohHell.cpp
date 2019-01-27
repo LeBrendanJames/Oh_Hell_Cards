@@ -679,7 +679,7 @@ int runPlaySims(int numSims, GameState * gmSt){
     int * scoreCounter[gmSt->getCardsRemaining()] {0};
     for (int i = 0; i < numSims; i++){
         dPoint = new DecisionPoint(gmSt);
-        dPoint->genOpponentHands();
+        //dPoint->genOpponentHands();
         //std::cout << "Through genOpponentHands" << std::endl;
         playRec = dPoint->makePlay();
         //std::cout << "Through makePlay. playRec = " << playRec->getCardStr() << std::endl;
@@ -709,7 +709,7 @@ int runBidSims(int numSims, GameState * gmSt){
     int * scoreCounter[gmSt->getCardsRemaining() + 1] {0};
     for (int i = 0; i < numSims; i++){
         dPoint = new DecisionPoint(gmSt);
-        dPoint->genOpponentHands();
+        //dPoint->genOpponentHands();
         //std::cout << "Through genOpponentHands" << std::endl;
         // Add 1 to index array of whatever bid is recommended
         scoreCounter[dPoint->makeBid()]++;

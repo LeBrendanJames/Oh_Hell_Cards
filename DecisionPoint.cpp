@@ -136,11 +136,15 @@ void DecisionPoint::genOpponentHands() {
     for (int i = 0; i < gmSt->getNumPlyrs(); i++){
 	    std::cout << "Player #" << i;
 	    for (int j = 0; j < gmSt->getCardsRemaining(); j++){
-	        std::cout << " " << gmSt->getCardFromPlyrHands(i, j)->getCardStr();
+	        if (gmSt->getCardFromPlyrHands(i, j) != nullptr) {
+                std::cout << " " << gmSt->getCardFromPlyrHands(i, j)->getCardStr();
+            } else {
+	            std::cout << " " << "--";
+	        }
 	    }
 	    std::cout << std::endl;
 	}
-     */
+    */
 
 }
 
@@ -176,6 +180,10 @@ bool DecisionPoint::isValidSuit(Card * card, bool * validSuits){
 
 Card* DecisionPoint::makePlay(){
 	GameState * newGmSt = nullptr;
+
+	if (!gmSt->allHandsGenerated()){
+	    genOpponentHands();
+	}
 
 	// Loop through all potential cards available
     int numLoops = gmSt->getCardsRemaining();
@@ -231,5 +239,6 @@ Card* DecisionPoint::makePlay(){
 		newGmSt = nullptr;
 	}
 
+	//std::cout << "Returning " << cardPlayed->getCardStr() << " from makePlay()" << std::endl;
     return cardPlayed;
 }
