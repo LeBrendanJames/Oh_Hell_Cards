@@ -76,7 +76,8 @@ int main(){
 
 	int testsPassed = 0, testsFailed = 0;
 
-	srand(time(NULL));
+	//srand(time(NULL));
+    srand(237); // Seeding the same to force determinism in tests
 
 	// CARD CLASS TESTS
 	std::cout << std::endl;
@@ -533,9 +534,12 @@ int main(){
     //delete game;
     //game = nullptr;
 
+
+
     std::cout << std::endl;
     std::cout << "Testing genOpponentHands() and makePlay():" << std::endl;
 
+    /*
 
     int maxScoreCounter = runPlaySims(200, game);
     if (game->getCardFromPlyrHands(0, maxScoreCounter)->getCardStr() == "Ah"){
@@ -571,8 +575,8 @@ int main(){
     delete game;
     game = nullptr;
 
+    */
 
-    /*
 
     game = new GameState(5, 1, 2, flippedCard, heroHand);
     game->makeBid(0);
@@ -582,7 +586,7 @@ int main(){
     game->makeBid(0);
     game->addCardToPlyrHand(0, "Kh");
     game->playCard(0);
-    maxScoreCounter = runPlaySims(50, game);
+    int maxScoreCounter = runPlaySims(50, game);
     if (game->getCardFromPlyrHands(1, maxScoreCounter)->getCardStr() == "Ah"){
         std::cout << "TEST: 5 player game (Hero 2nd pos, cards 2h/Ah) correct rec - PASSED" << std::endl;
         testsPassed++;
@@ -593,11 +597,12 @@ int main(){
     delete game;
     game = nullptr;
 
-    */
+
 
 
     std::cout << std::endl;
     std::cout << "Testing makeBid() recommendation:" << std::endl;
+
     game = new GameState(4, 0, 2, flippedCard, heroHand);
     int optimalBid = runBidSims(100, game);
     if (optimalBid == 2){
@@ -616,6 +621,7 @@ int main(){
 
     game = new GameState(3, 1, 2, flippedCard, heroHand);
     game->makeBid(0);
+    //std::cout << "First player made bid of 0. Next to act = " << game->getNextToAct() << std::endl;
     //dPoint = new DecisionPoint(game);
     //dPoint->genOpponentHands();
     //optimalBid = 0;
@@ -684,6 +690,8 @@ int runPlaySims(int numSims, GameState * gmSt){
         delete dPoint;
         dPoint = nullptr;
         playRec = nullptr;
+
+        //std::cout << "Through one simulation loop, going back to top" << std::endl;
     }
 
     std::cout << "Done with sims. Reommendations:" << std::endl;

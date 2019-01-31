@@ -250,6 +250,12 @@ bool GameState::makeBid(int bid){
 }
 
 bool GameState::playCard(int cardToPlay){
+    //std::cout << "In GameState::playCard()" << std::endl;
+    //std::cout << "nextToAct = " << nextToAct << std::endl;
+    //std::cout << "cardToPlay (int) = " << cardToPlay << std::endl;
+    //if (cardToPlay != -1 && cardToPlay < numCardsRemaining) {
+    //    std::cout << "cardToPlay (card) = " << plyrHands[nextToAct][cardToPlay]->getCardStr() << std::endl;
+    //}
     bool isValidPlay = checkValidPlay(nextToAct, cardToPlay);
 
     if (isValidPlay) {
@@ -325,6 +331,19 @@ bool GameState::allHandsGenerated(){
         //std::cout << "Returning false" << std::endl;
         return false;
     }
+}
+
+void GameState::deleteAllHands(){
+    for (int i = 0; i < numPlyrs; i++){
+        for (int j = 0; j < numCardsRemaining; j++){
+            delete plyrHands[i][j];
+            plyrHands[i][j] = nullptr;
+        }
+    }
+}
+
+void GameState::setNextToAct(int position){
+    nextToAct = position;
 }
 
 bool GameState::cardPrevUsed(std::string card){
