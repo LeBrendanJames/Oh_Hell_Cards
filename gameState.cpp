@@ -2,6 +2,43 @@
 
 #include "gameState.h"
 
+GameState::GameState(int numPlyrs, int heroPosition, int totalCards, Card * flippedCard) {
+    this->numPlyrs = numPlyrs;
+    this->heroPosition = heroPosition;
+    this->totalCards = totalCards;
+    this->numCardsRemaining = totalCards; // Assuming gameplay has not started
+    this->trump = flippedCard->getSuit();
+    this->nextToAct = 0;
+    this->currRound = 0;
+    bids = new int[numPlyrs];
+    for (int i = 0; i < numPlyrs; i++){
+        bids[i] = -1;
+    }
+
+    roundLead = new int[totalCards];
+    for (int i = 0; i < totalCards; i++){
+        roundLead[i] = -1;
+    }
+    roundLead[0] = 0; // Position 0 starts 1st round
+
+    finalScores = new int[numPlyrs] {-1};
+
+    plyrHands = new Card**[numPlyrs] {nullptr};
+
+    for (int i = 0; i < numPlyrs; i++){
+        plyrHands[i] = new Card*[numCardsRemaining] {nullptr};
+    }
+
+    plydCrds = new Card**[totalCards] {nullptr};
+    for (int i = 0; i < totalCards; i++){
+        plydCrds[i] = new Card*[numPlyrs] {nullptr};
+    }
+
+    this->flippedCard = new Card(*flippedCard);
+
+    //srand(time(NULL));
+}
+
 GameState::GameState(int numPlyrs, int heroPosition, int totalCards, Card * flippedCard, Card ** heroHand) {
     this->numPlyrs = numPlyrs;
     this->heroPosition = heroPosition;
@@ -41,7 +78,7 @@ GameState::GameState(int numPlyrs, int heroPosition, int totalCards, Card * flip
 
     this->flippedCard = new Card(*flippedCard);
 
-    srand(time(NULL));
+    //srand(time(NULL));
 }
 
 GameState::GameState(const GameState &oldGmSt){
@@ -167,6 +204,10 @@ Card * GameState::getCardFromPlyrHands(int player, int cardPosition){
 
 Card * GameState::getCardFromPlydCrds(int round, int position){
     return plydCrds[round][position];
+}
+
+Card * GameState::getFlippedCard(){
+    return flippedCard;
 }
 
 void GameState::setBid(int position, int bid) {

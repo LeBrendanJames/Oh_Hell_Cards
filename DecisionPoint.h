@@ -16,7 +16,7 @@ public:
 	int getScore(int index);
 
 	int makeBid();
-	void genOpponentHands();
+	bool genOpponentHands();
 	Card* makePlay();
 
 private:
@@ -27,6 +27,7 @@ private:
 	
 	void markInvalidSuits(int position, bool * validSuits);
 	bool isValidSuit(Card * card, bool * validSuits);
+	void addRandomHand(GameState * indivGmSt, int position);
 };
 
 #endif //CARDS_DECISIONPOINT_H

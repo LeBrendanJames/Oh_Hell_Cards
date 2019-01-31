@@ -11,6 +11,7 @@ const int BID_CORRECT_BONUS = 10;
 
 class GameState{
 public:
+	GameState(int numPlyrs, int heroPosition, int totalCards, Card * flippedCard);
     GameState(int numPlyrs, int heroPosition, int totalCards, Card * flippedCard, Card ** heroHand);
     GameState(const GameState &oldGmSt);
     ~GameState();
@@ -28,6 +29,7 @@ public:
     // getters for arrays
     Card * getCardFromPlyrHands(int player, int cardPosition);
     Card * getCardFromPlydCrds(int round, int position);
+    Card * getFlippedCard();
 
     void setBid(int position, int bid);
     bool addCardToPlyrHand(int player, std::string card);
