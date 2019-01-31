@@ -42,6 +42,7 @@ public:
 	bool allHandsGenerated();
 
 	void deleteAllHands();
+	void deleteAllPlydCrds();
 	void setNextToAct(int position);
 
 private:

@@ -240,9 +240,15 @@ bool GameState::isTrump(Card * card){
 }
 
 bool GameState::makeBid(int bid){
+    //std::cout << "In GameState::makeBid" << std::endl;
+    //std::cout << "Bid to make = " << bid << std::endl;
+    //std::cout << "nextToAct = " << nextToAct << std::endl;
+    //std::cout << "Current bid of that position = " << bids[nextToAct] << std::endl;
 	if (bid >= 0 && bid <= totalCards){
 		bids[nextToAct] = bid;
+		//std::cout << "Made bid. It is now: " << bids[nextToAct] << std::endl;
 		updateNextToAct();
+		//std::cout << "Updated nextToAct" << std::endl;
 		return true;
 	}
 	
@@ -338,6 +344,15 @@ void GameState::deleteAllHands(){
         for (int j = 0; j < numCardsRemaining; j++){
             delete plyrHands[i][j];
             plyrHands[i][j] = nullptr;
+        }
+    }
+}
+
+void GameState::deleteAllPlydCrds(){
+    for (int i = 0; i < numPlyrs; i++){
+        for (int j = 0; j < totalCards; j++){
+            delete plydCrds[j][i];
+            plydCrds[j][i] = nullptr;
         }
     }
 }

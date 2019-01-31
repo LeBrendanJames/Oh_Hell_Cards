@@ -539,7 +539,7 @@ int main(){
     std::cout << std::endl;
     std::cout << "Testing genOpponentHands() and makePlay():" << std::endl;
 
-    /*
+
 
     int maxScoreCounter = runPlaySims(200, game);
     if (game->getCardFromPlyrHands(0, maxScoreCounter)->getCardStr() == "Ah"){
@@ -575,7 +575,7 @@ int main(){
     delete game;
     game = nullptr;
 
-    */
+
 
 
     game = new GameState(5, 1, 2, flippedCard, heroHand);
@@ -584,10 +584,10 @@ int main(){
     game->makeBid(0);
     game->makeBid(0);
     game->makeBid(0);
-    game->addCardToPlyrHand(0, "Kh");
+    game->addCardToPlyrHand(0, "Qc");
     game->playCard(0);
-    int maxScoreCounter = runPlaySims(50, game);
-    if (game->getCardFromPlyrHands(1, maxScoreCounter)->getCardStr() == "Ah"){
+    maxScoreCounter = runPlaySims(10, game);
+    if (game->getCardFromPlyrHands(1, maxScoreCounter)->getCardStr() == "2h"){
         std::cout << "TEST: 5 player game (Hero 2nd pos, cards 2h/Ah) correct rec - PASSED" << std::endl;
         testsPassed++;
     } else {
