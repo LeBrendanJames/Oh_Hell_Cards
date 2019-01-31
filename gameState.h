@@ -41,6 +41,10 @@ public:
 	bool calcFinalScores();
 	bool allHandsGenerated();
 
+	void deleteAllHands();
+	void deleteAllPlydCrds();
+	void setNextToAct(int position);
+
 private:
     int numPlyrs;
     int heroPosition;
