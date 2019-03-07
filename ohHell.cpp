@@ -539,8 +539,7 @@ int main(){
     std::cout << std::endl;
     std::cout << "Testing genOpponentHands() and makePlay():" << std::endl;
 
-
-
+    //int maxScoreCounter = runPlaySims(4, game);
     int maxScoreCounter = runPlaySims(200, game);
     if (game->getCardFromPlyrHands(0, maxScoreCounter)->getCardStr() == "Ah"){
         std::cout << "TEST: 200 DecisionPoint sims - recommendation correct - PASSED" << std::endl;

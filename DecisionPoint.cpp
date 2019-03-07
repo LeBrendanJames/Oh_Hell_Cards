@@ -11,12 +11,12 @@ DecisionPoint::DecisionPoint(GameState *currGmSt){
 
 	gmSt = new GameState(*currGmSt); // Gamestate copied when decisionPoint constructed
 
-    cardPlayed = nullptr;
+    //cardPlayed = nullptr;
 }
 
 DecisionPoint::~DecisionPoint(){
 	delete gmSt;
-	delete cardPlayed;
+	//delete cardPlayed;
 }
 
 int DecisionPoint::getScore(int index){
@@ -631,6 +631,22 @@ bool DecisionPoint::isValidSuit(Card * card, bool * validSuits){
 }
 
 Card* DecisionPoint::makePlay(){
+    bool cardGenerationRound = false;
+
+    std::vector<int> tempScores;
+    for (int i = 0; i < gmSt->getNumPlyrs(); i++){
+        tempScores.push_back(0);
+    }
+
+    int currPosition = gmSt->getNextToAct();
+    //std::cout << "In makePlay(). currPosition = " << currPosition << std::endl;
+
+    Card * cardPlayed = nullptr;
+
+    for (int i = 0; i < gmSt->getNumPlyrs(); i++) {
+        scores[i] = -1;
+    }
+
     //std::cout << "In DecisionPoint::makePlay()" << std::endl;
     //std::cout << "Bids are: " << std::endl;
     //for (int i = 0; i < gmSt->getNumPlyrs(); i++){
@@ -649,7 +665,7 @@ Card* DecisionPoint::makePlay(){
     //    std::cout << std::endl;
     //}
     //std::cout << "nextToAct = " << gmSt->getNextToAct() << std::endl;
-	GameState * newGmSt = nullptr;
+	//GameState * newGmSt = nullptr;
 
 	if (!gmSt->allHandsGenerated()){
 	    //std::cout << "All hands not generated, so calling genOpponentHands" << std::endl;
@@ -659,7 +675,9 @@ Card* DecisionPoint::makePlay(){
 	        return nullptr;
 	    }
 
+	    cardGenerationRound = true;
 
+        //std::cout << "Rondom hands generated." << std::endl;
 	    //std::cout << "Bids are: " << std::endl;
 	    //for (int i = 0; i < gmSt->getNumPlyrs(); i++){
 	    //    std::cout << "Player #" << i << ": " << gmSt->getBid(i) << std::endl;
@@ -683,10 +701,17 @@ Card* DecisionPoint::makePlay(){
 	//    gmSt->setNextToAct(0);
 	//}
 
+    cardPlayed = new Card(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), rand() % gmSt->getCardsRemaining())->getCardStr());
+
 	// Loop through all potential cards available
     int numLoops = gmSt->getCardsRemaining();
 	//std::cout << "numLoops = " << numLoops << std::endl;
 	for (int i = 0; i < numLoops; i++){
+	    //if (i == 0){
+	    //    cardPlayed = new Card(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), i)->getCardStr());
+            //std::cout << "Setting cardPlayed to: " << cardPlayed->getCardStr() << std::endl;
+            //std::cout << "i = " << i << ", nextToAct (before card play) = " << gmSt->getNextToAct() << std::endl;
+	    //}
         //std::cout << "Within loop in makePlay()" << std::endl;
         //std::cout << "Current state of game:" << std::endl;
         //std::cout << "Bids: " << std::endl;
@@ -707,33 +732,83 @@ Card* DecisionPoint::makePlay(){
         //}
 
 		// copy game state
-		newGmSt = new GameState(*gmSt);
+		//newGmSt = new GameState(*gmSt);
 
 		Card * tempCardPlayed = new Card(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), i)->getCardStr());
+        //std::cout << "Got tempCard = " << tempCardPlayed->getCardStr() << std::endl;
 
 		// add card played
-		bool validPlay = newGmSt->playCard(i);
-		//std::cout << "Finished playing card" << std::endl;
-		//std::cout << "validPlay = " << validPlay << std::endl;
+        // If play is invalid, nothing changes about gameState
+        // Otherwise, card is played and nextToAct is updated (and anything else that changes about gameState)
+		//bool validPlay = newGmSt->playCard(i);
+		bool validPlay = gmSt->playCard(i);
+
+		//if (validPlay){
+		//    std::cout << "Making play " << tempCardPlayed->getCardStr() << std::endl;
+		//}
+
+		//if(cardGenerationRound) {
+        //    std::cout << "Finished playing card. i = " << i << std::endl;
+        //    std::cout << "validPlay = " << validPlay << std::endl;
+        //}
 		if (validPlay){ // if validPlay, then play has been made
-			
-			if (newGmSt->getNextToAct() != -1){ // recursive case 
+
+		    if (gmSt->getNextToAct() != -1){
+			//if (newGmSt->getNextToAct() != -1){ // recursive case
 				// Create new node & call its makePlay function
-				auto * newDPoint = new DecisionPoint(newGmSt);
+				//auto * newDPoint = new DecisionPoint(newGmSt);
 
-				newDPoint->makePlay();
+                // Save scores array in tempScores befre making next play
+                for (int j = 0; j < gmSt->getNumPlyrs(); j++) {
+                    tempScores[j] = scores[j];
+                }
 
-				if (newDPoint->getScore(this->position) > scores[this->position]){
-				    // Update cardPlayed & scores array
-                    if (cardPlayed != nullptr){
+                makePlay();
+				//newDPoint->makePlay();
+
+                //if(cardGenerationRound){
+                //    std::cout << "Level below returned from makePlay. Looking at scores now." << std::endl;
+                //    std::cout << "currPosition = " << currPosition << std::endl;
+                //}
+
+                if (scores[currPosition] > tempScores[currPosition]) {
+                    //if (cardGenerationRound){
+                    //    std::cout << " scores > tempScores: " << scores[currPosition] << " to " << tempScores[currPosition];
+                    //    std::cout << std::endl;
+                    //}
+                    //if (scores[this->position] > tempScores[this->position]) {
+                    // Update cardPlayed & scores array
+                    if (cardPlayed != nullptr) {
                         delete cardPlayed;
                         cardPlayed = nullptr;
                     }
                     cardPlayed = new Card(tempCardPlayed->getCardStr());
-                    for (int j = 0; j < gmSt->getNumPlyrs(); j++){
-                        scores[j] = newDPoint->getScore(j);
+                    //std::cout << "In if stmt where scores > tempScores." << std::endl;
+                    //std::cout << "Setting cardPlayed to: " << cardPlayed->getCardStr() << std::endl;
+                    //std::cout << "i = " << i << ", nextToAct (after card play) = " << gmSt->getNextToAct() << std::endl;
+                    //std::cout << "currPosition = " << currPosition << std::endl;
+                    for (int j = 0; j < gmSt->getNumPlyrs(); j++) {
+                        tempScores[j] = 0;
                     }
-				} else if (newDPoint->getScore(this->position) == scores[this->position]){
+
+
+                    //if (newDPoint->getScore(this->position) > scores[this->position]){
+                    //    // Update cardPlayed & scores array
+                    //    if (cardPlayed != nullptr){
+                    //        delete cardPlayed;
+                    //        cardPlayed = nullptr;
+                    //    }
+                    //    cardPlayed = new Card(tempCardPlayed->getCardStr());
+                    //    for (int j = 0; j < gmSt->getNumPlyrs(); j++){
+                    //        scores[j] = newDPoint->getScore(j);
+                    //    }
+                } else if (scores[currPosition] == tempScores[currPosition]){
+                //} else if (scores[this->position] == tempScores[this->position]){
+				// } else if (newDPoint->getScore(this->position) == scores[this->position]){
+                    //if (cardGenerationRound){
+                    //    std::cout << "Scores equal to tempScores " << scores[currPosition] << " to " << tempScores[currPosition];
+                    //    std::cout << std::endl;
+                    //}
 				    // If the scores are equal, then playing either card is fine, so I randomize which
                     // card is played
                     // Otherwise, by choosing one over the other every time it seems to higher up
@@ -746,39 +821,77 @@ Card* DecisionPoint::makePlay(){
                             cardPlayed = nullptr;
                         }
                         cardPlayed = new Card(tempCardPlayed->getCardStr());
+                        //std::cout << "In stmt where scores, tempScores equal." << std::endl;
+                        //std::cout << "Setting cardPlayed to: " << cardPlayed->getCardStr() << std::endl;
+                        //std::cout << "i = " << i << ", nextToAct (after card play) = " << gmSt->getNextToAct() << std::endl;
+                        //std::cout << "currPosition = " << currPosition << std::endl;
                         for (int j = 0; j < gmSt->getNumPlyrs(); j++){
-                            scores[j] = newDPoint->getScore(j);
+                            tempScores[j] = 0;
+                        }
+				    } else {
+                        for (int j = 0; j < gmSt->getNumPlyrs(); j++){
+                            scores[j] = tempScores[j];
+                            tempScores[j] = 0;
                         }
 				    }
-				}
+				} else {
+                    //if (cardGenerationRound){
+                    //    std::cout << "tempScores > scores." << std::endl;
+                    //}
+                    // restore tempScores into scores
+                    for (int j = 0; j < gmSt->getNumPlyrs(); j++){
+                        scores[j] = tempScores[j];
+                        tempScores[j] = 0;
+                    }
+                    //std::cout << "In else stmt that won't change cardPlayed." << std::endl;
+                    //std::cout << "cardPlayed = " << cardPlayed->getCardStr() << std::endl;
+                }
 				
 				// Delete that new node here?
-				delete newDPoint;
-				newDPoint = nullptr;
+				//delete newDPoint;
+				//newDPoint = nullptr;
 				
 			} else { // base case - end of game
-			    //std::cout << "In final else stmt" << std::endl;
+		        //**CHANGING CARDPLAYED AND UPDATING SCORES[] SHOULD ONLY BE DONE ONLY IF FINALSCORES BETTER THAN TEMPSCORES**
+
+                //std::cout << "In final else stmt" << std::endl;
 			    cardPlayed = new Card(tempCardPlayed->getCardStr());
+			    //std::cout << "In base case. Setting cardPlayed to " << cardPlayed->getCardStr() << std::endl;
+                //std::cout << "Setting cardPlayed to: " << cardPlayed->getCardStr() << std::endl;
+                //std::cout << "i = " << i << ", nextToAct (before card play) = " << gmSt->getNextToAct() << std::endl;
 			    //std::cout << "copied into cardPlayed" << std::endl;
 			    //std::cout << "cardPlayed = " << cardPlayed->getCardStr() << std::endl;
 
-                newGmSt->calcFinalScores();
+                gmSt->calcFinalScores();
+                //newGmSt->calcFinalScores();
 
                 //std::cout << "Done with calcFinalScores" << std::endl;
-
-                for (int j = 0; j < gmSt->getNumPlyrs(); j++){
-                    scores[j] = newGmSt->getFinalScore(j); // copy scores from gmSt up to DecisionPoint
+                if (gmSt->getFinalScore(currPosition) > scores[currPosition]){
+                //if (gmSt->getFinalScore(this->position) > scores[this->position]) {
+                    for (int j = 0; j < gmSt->getNumPlyrs(); j++) {
+                        scores[j] = gmSt->getFinalScore(j);
+                        //scores[j] = newGmSt->getFinalScore(j); // copy scores from gmSt up to DecisionPoint
+                    }
                 }
+
+                // check whether tempScores or scores higher?
+
 			}
+
+			//std::cout << "About to call reversePlay. tempCardPlayed = " << tempCardPlayed->getCardStr() << std::endl;
+			gmSt->reversePlay(tempCardPlayed->getCardStr());
 		}
 
 		delete tempCardPlayed;
 		tempCardPlayed = nullptr;
 
-		delete newGmSt;
-		newGmSt = nullptr;
+		//delete newGmSt;
+		//newGmSt = nullptr;
 	}
 
+    //if(cardGenerationRound){
+	    //std::cout << "Returning: " << cardPlayed->getCardStr() << " from makePlay" << std::endl;
+	//}
 	//std::cout << "Returning " << cardPlayed->getCardStr() << " from makePlay()" << std::endl;
     return cardPlayed;
 }

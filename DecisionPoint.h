@@ -23,7 +23,7 @@ private:
 	int position;
 	std::vector<int> scores;
 	GameState * gmSt;
-	Card * cardPlayed;
+	//Card * cardPlayed;
 	
 	void markInvalidSuits(int position, bool * validSuits);
 	bool isValidSuit(Card * card, bool * validSuits);

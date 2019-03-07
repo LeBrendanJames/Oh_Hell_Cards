@@ -45,6 +45,8 @@ public:
 	void deleteAllPlydCrds();
 	void setNextToAct(int position);
 
+	void reversePlay(std::string tempCard);
+
 private:
     int numPlyrs;
     int heroPosition;
@@ -64,8 +66,11 @@ private:
 
 	bool checkValidPlay(int position, int cardToPlay); // Used in playCard
     bool addCardToPlydCrds(int round, int position, std::string card);
+    bool removeCardFromPlydCrds(int round, int position);
+    bool restoreCardToPlyrHand(int plyrPosition, std::string card);
     bool removeCardFromPlyrHand(int plyrPosition, std::string card);
     void updateNextToAct();
+    void reverseNextToAct();
     int findTrickWinner(int trickNum);
 };
 
