@@ -29,4 +29,4 @@ test: cardtest decisionpointtest gamestatetest gametest
 	./gameTest
 
 clean:
-	rm -f *.o *.exe
+	rm -f *.o *.exe *.stackdump
