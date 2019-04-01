@@ -35,8 +35,6 @@ GameState::GameState(int numPlyrs, int heroPosition, int totalCards, Card * flip
     }
 
     this->flippedCard = new Card(*flippedCard);
-
-    //srand(time(NULL));
 }
 
 GameState::GameState(int numPlyrs, int heroPosition, int totalCards, Card * flippedCard, Card ** heroHand) {
@@ -77,8 +75,6 @@ GameState::GameState(int numPlyrs, int heroPosition, int totalCards, Card * flip
     }
 
     this->flippedCard = new Card(*flippedCard);
-
-    //srand(time(NULL));
 }
 
 GameState::GameState(const GameState &oldGmSt){

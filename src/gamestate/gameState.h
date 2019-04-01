@@ -12,18 +12,18 @@ const int BID_CORRECT_BONUS = 10;
 class GameState{
 public:
 	GameState(int numPlyrs, int heroPosition, int totalCards, Card * flippedCard);
-    GameState(int numPlyrs, int heroPosition, int totalCards, Card * flippedCard, Card ** heroHand);
-    GameState(const GameState &oldGmSt);
+    GameState(int numPlyrs, int heroPosition, int totalCards, Card * flippedCard, Card ** heroHand); // TESTED
+    GameState(const GameState &oldGmSt); // TESTED
     ~GameState();
 
-    int getNumPlyrs();
-    int getHeroPosition();
-    int getTotalCards();
-    int getCardsRemaining();
-    Suit getTrump();
-    int getNextToAct();
+    int getNumPlyrs(); // TESTED
+    int getHeroPosition(); // TESTED
+    int getTotalCards(); // TESTED
+    int getCardsRemaining(); // TESTED
+    Suit getTrump(); // TESTED
+    int getNextToAct(); // TESTED
 	int getCurrRound();
-    int getBid(int position);
+    int getBid(int position); // TESTED
     int getRoundLead(int roundNum);
     int getFinalScore(int plyrPosiiton);
     // getters for arrays
@@ -31,14 +31,14 @@ public:
     Card * getCardFromPlydCrds(int round, int position);
     Card * getFlippedCard();
 
-    void setBid(int position, int bid);
+    void setBid(int position, int bid); // TESTED
     bool addCardToPlyrHand(int player, std::string card);
 
-    bool isTrump(Card * card);
+    bool isTrump(Card * card); // TESTED
 	bool makeBid(int bid);
 	bool playCard(int cardPositionInHand);
     bool cardPrevUsed(std::string card);
-	bool calcFinalScores();
+	bool calcFinalScores();  // TESTED
 	bool allHandsGenerated();
 
 	void deleteAllHands();

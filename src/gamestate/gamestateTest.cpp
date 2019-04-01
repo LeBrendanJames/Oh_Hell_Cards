@@ -74,6 +74,12 @@ int main(){
         std::cout << "TEST: isTrump (correct) - FAILED" << std::endl;
         testsFailed++;
     }
+    if (game->getNextToAct() == 0){
+        testsPassed++;
+    } else {
+        std::cout << "TEST: getNextToAct() == 0 - FAILED" << std::endl;
+        testsFailed++;
+    }
     delete card;
     card = nullptr;
     card = new Card("Ts");
@@ -99,9 +105,7 @@ int main(){
     delete game;
     game = nullptr;
 
-    // check copy constructor
-    //std::cout << std::endl;
-    //std::cout << "Testing GameState copy constructor:" << std::endl;
+    // TEST COPY CONSTRUCTOR
     game = new GameState(4, 0, 2, flippedCard, heroHand);
     GameState * copiedGame = new GameState(*game);
     if (game->getNumPlyrs() == copiedGame->getNumPlyrs()){
@@ -132,6 +136,12 @@ int main(){
         std::cout << "TEST: Copy constructor cardsRemaining - FAILED" << std::endl;
         testsFailed++;
     }
+    if (game->getTrump() == copiedGame->getTrump()){
+        testsPassed++;
+    } else {
+        std::cout << "TEST: Copy constructor trump - FAILED" << std::endl;
+        testsFailed++;
+    }
     if (game->getNextToAct() == copiedGame->getNextToAct()){
         //std::cout << "TEST: Copy constructor nextToAct - PASSED" << std::endl;
         testsPassed++;
@@ -160,11 +170,33 @@ int main(){
         std::cout << "TEST: Copy constructor getRoundLead(0) - FAILED" << std::endl;
         testsFailed++;
     }
+    if (game->getFinalScore(1) == copiedGame->getFinalScore(1)){
+        testsPassed++;
+    } else {
+        std::cout << "TEST: Copy constructor finalScores(1) - FAILED" << std::endl;
+        testsFailed++;
+    }
     if (game->getCardFromPlyrHands(0, 0)->getCardStr() == copiedGame->getCardFromPlyrHands(0, 0)->getCardStr()){
         //std::cout << "TEST: Copy constructor plyrHands(0, 0) - PASSED" << std::endl;
         testsPassed++;
     } else {
         std::cout << "TEST: Copy constructor plyrHands(0, 0) - FAILED" << std::endl;
+        testsFailed++;
+    }
+    if (game->getCardFromPlydCrds(0, 0) == copiedGame->getCardFromPlydCrds(0, 0) &&
+            game->getCardFromPlydCrds(game->getTotalCards() - 1, game->getNumPlyrs() - 1) ==
+            copiedGame->getCardFromPlydCrds(copiedGame->getTotalCards() - 1, copiedGame->getNumPlyrs() - 1)){
+        testsPassed++;
+    } else {
+        std::cout << "TEST: Copy constructor plydCrds(0, 0) && plydCrds(totalCards, numPlyrs)" << std::endl;
+        testsFailed++;
+    }
+    if (*(game->getFlippedCard()) == *(copiedGame->getFlippedCard())){
+        testsPassed++;
+    } else {
+        std::cout << "TEST: Copy constructor flippedCard - FAILED" << std::endl;
+        std::cout << "game.flippedCard = " << game->getFlippedCard()->getCardStr() << std::endl;
+        std::cout << "copiedgame.flippedCard = " << copiedGame->getFlippedCard()->getCardStr() << std::endl;
         testsFailed++;
     }
     delete game;
