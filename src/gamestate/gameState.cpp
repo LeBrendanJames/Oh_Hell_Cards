@@ -337,6 +337,7 @@ bool GameState::allHandsGenerated(){
     }
 }
 
+/*
 void GameState::deleteAllHands(){
     for (int i = 0; i < numPlyrs; i++){
         for (int j = 0; j < numCardsRemaining; j++){
@@ -358,6 +359,7 @@ void GameState::deleteAllPlydCrds(){
 void GameState::setNextToAct(int position){
     nextToAct = position;
 }
+*/
 
 void GameState::reversePlay(std::string tempCard){
     //std::cout << "In GameState::reversePlay" << std::endl;
