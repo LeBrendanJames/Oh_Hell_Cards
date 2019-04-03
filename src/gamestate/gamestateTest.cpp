@@ -1,6 +1,8 @@
 
 #include "gameState.h"
+#include "gamestateTest.h"
 #include "../card/Card.h"
+
 
 int main(){
     int testsPassed = 0, testsFailed = 0;
@@ -9,201 +11,30 @@ int main(){
     std::cout << std::endl;
     std::cout << "GAMESTATE CLASS TESTS" << std::endl;
     std::cout << "-------------------------------------" << std::endl;
+	
+	testCopyConstructor();
+	//std::cout << "Through testCopyConstructor()" << std::endl;
 
-    Card * flippedCard = new Card("3h");
-    Card ** heroHand = new Card*[2];
-    heroHand[0] = new Card("2h");
-    heroHand[1] = new Card("Ah");
-    GameState * game = new GameState(4, 0, 2, flippedCard, heroHand);
-    if (game->getNumPlyrs() == 4){
-        //std::cout << "TEST: GameState Constructor Set numPlayers - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: GameState Constructor Set numPlayers - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->getTotalCards() == 2){
-        //std::cout << "TEST: GameState Constructor Set totalCards - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: GameState Constructor Set totalCards - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->getCardsRemaining() == 2){
-        //std::cout << "TEST: GameState Constructor Set cardsRemaining - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: GameState Constructor Set cardsRemaining - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->getBid(0) == -1){
-        //std::cout << "TEST: GameState Constructor Set Default Bids to -1 - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: GameState Constructor Set Default Bids to -1 - FAILED" << std::endl;
-        std::cout << "Actual result: " << game->getBid(0) << std::endl;
-        testsFailed++;
-    }
-    game->setBid(0, 1);
-    if (game->getBid(0) == 1){
-        //std::cout << "TEST: setBid - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: setBid - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->getTrump() == Hearts){
-        //std::cout << "TEST: getTrump (correct) - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: getTrump (correct) - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->getTrump() != Diamonds){
-        //std::cout << "TEST: getTrump (incorrect) - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: getTrump (incorrect) - FAILED" << std::endl;
-        testsFailed++;
-    }
-    Card * card = new Card("Th");
-    if (game->isTrump(card)){
-        //std::cout << "TEST: isTrump (correct) - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: isTrump (correct) - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->getNextToAct() == 0){
-        testsPassed++;
-    } else {
-        std::cout << "TEST: getNextToAct() == 0 - FAILED" << std::endl;
-        testsFailed++;
-    }
-    delete card;
-    card = nullptr;
-    card = new Card("Ts");
-    if (!game->isTrump(card)){
-        //std::cout << "TEST: isTrump (incorrect) - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: isTrump (incorrect) - FAILED" << std::endl;
-        testsFailed++;
-    }
-    delete card;
-    card = nullptr;
-    delete game;
-    game = nullptr;
-    game = new GameState(4, 1, 2, flippedCard, heroHand);
-    if (game->getCardFromPlyrHands(1, 0)->getCardStr() == "2h"){
-        //std::cout << "TEST: hero in position 1 - Hero hand in correct place - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: hero in position 1 - Hero hand in correct place - FAILED" << std::endl;
-        testsFailed++;
-    }
-    delete game;
-    game = nullptr;
+	testIsTrump();
+    //std::cout << "Through testIsTrump()" << std::endl;
+	testMakeBid();
+    //std::cout << "Through testMakeBid()" << std::endl;
+	testPlayCard();
+    //std::cout << "Through testPlayCard()" << std::endl;
+	testCardPrevUsed();
+    //std::cout << "Through testCardPrevUsed()" << std::endl;
+	testCalcFinalScores();
+    //std::cout << "Through testCalcFinalScores()" << std::endl;
+	testAllHandsGenerated();
+    //std::cout << "Through testAllHandsGenerated()" << std::endl;
+	testReversePlay();
+    //std::cout << "Through testReversePlay()" << std::endl;
 
-    // TEST COPY CONSTRUCTOR
-    game = new GameState(4, 0, 2, flippedCard, heroHand);
-    GameState * copiedGame = new GameState(*game);
-    if (game->getNumPlyrs() == copiedGame->getNumPlyrs()){
-        //std::cout << "TEST: Copy constructor numPlyrs - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: Copy constructor numPlyrs - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->getHeroPosition() == copiedGame->getHeroPosition()){
-        //std::cout << "TEST: Copy constructor heroPosition - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: Copy constructor heroPosition - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->getTotalCards() == copiedGame->getTotalCards()){
-        //std::cout << "TEST: Copy constructor totalCards - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: Copy constructor totalCards - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->getCardsRemaining() == copiedGame->getCardsRemaining()){
-        //std::cout << "TEST: Copy constructor cardsRemaining - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: Copy constructor cardsRemaining - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->getTrump() == copiedGame->getTrump()){
-        testsPassed++;
-    } else {
-        std::cout << "TEST: Copy constructor trump - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->getNextToAct() == copiedGame->getNextToAct()){
-        //std::cout << "TEST: Copy constructor nextToAct - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: Copy constructor nextToAct - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->getCurrRound() == copiedGame->getCurrRound()){
-        //std::cout << "TEST: Copy constructor currRound - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: Copy constructor currRound - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->getBid(2) == copiedGame->getBid(2)){
-        //std::cout << "TEST: Copy constructor getBid(2) - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: Copy constructor getBid(2) - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->getRoundLead(0) == copiedGame->getRoundLead(0)){
-        //std::cout << "TEST: Copy constructor getRoundLead(0) - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: Copy constructor getRoundLead(0) - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->getFinalScore(1) == copiedGame->getFinalScore(1)){
-        testsPassed++;
-    } else {
-        std::cout << "TEST: Copy constructor finalScores(1) - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->getCardFromPlyrHands(0, 0)->getCardStr() == copiedGame->getCardFromPlyrHands(0, 0)->getCardStr()){
-        //std::cout << "TEST: Copy constructor plyrHands(0, 0) - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: Copy constructor plyrHands(0, 0) - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->getCardFromPlydCrds(0, 0) == copiedGame->getCardFromPlydCrds(0, 0) &&
-            game->getCardFromPlydCrds(game->getTotalCards() - 1, game->getNumPlyrs() - 1) ==
-            copiedGame->getCardFromPlydCrds(copiedGame->getTotalCards() - 1, copiedGame->getNumPlyrs() - 1)){
-        testsPassed++;
-    } else {
-        std::cout << "TEST: Copy constructor plydCrds(0, 0) && plydCrds(totalCards, numPlyrs)" << std::endl;
-        testsFailed++;
-    }
-    if (*(game->getFlippedCard()) == *(copiedGame->getFlippedCard())){
-        testsPassed++;
-    } else {
-        std::cout << "TEST: Copy constructor flippedCard - FAILED" << std::endl;
-        std::cout << "game.flippedCard = " << game->getFlippedCard()->getCardStr() << std::endl;
-        std::cout << "copiedgame.flippedCard = " << copiedGame->getFlippedCard()->getCardStr() << std::endl;
-        testsFailed++;
-    }
-    delete game;
-    game = nullptr;
-    delete copiedGame;
-    copiedGame = nullptr;
+    std::cout << std::endl;
+    std::cout << "COMPLETED GAMESTATE TESTS" << std::endl;
+	
 
+	/*
     //std::cout << std::endl;
     //std::cout << "Testing playCard:" << std::endl;
     game = new GameState(4, 0, 2, flippedCard, heroHand);
@@ -304,51 +135,756 @@ int main(){
         std::cout << "TEST: updateNextToAct correctly recognizes end of game - FAILED" << std::endl;
         testsFailed++;
     }
-
-    //std::cout << std::endl;
-    //std::cout << "Testing calcFinalScores():" << std::endl;
-    // Bids must be in so that scores can be calculated
-    game->setBid(0, 2);
-    game->setBid(1, 0);
-    game->setBid(2, 0);
-    game->setBid(3, 0);
-    game->calcFinalScores();
-    if (game->getFinalScore(0) == 1){
-        //std::cout << "TEST: calculated player 0 final score correctly - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: calculated player 0 final score correctly - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->getFinalScore(1) == 10){
-        //std::cout << "TEST: calculated player 1 final score correctly - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: calculated player 1 final score correctly - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->getFinalScore(2) == 10){
-        //std::cout << "TEST: calculated player 2 final score correctly - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: calculated player 2 final score correctly - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->getFinalScore(3) == 1){
-        //std::cout << "TEST: calculated player 3 final score correctly - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: calculated player 3 final score correctly - FAILED" << std::endl;
-        testsFailed++;
-    }
     delete game;
     game = nullptr;
-
-    std::cout << std::endl;
-    std::cout << "SUMMARY" << std::endl;
-    std::cout << "------------------------------------" << std::endl;
-    std::cout << "Tests Passed: " << testsPassed << ", Tests Failed: " << testsFailed << std::endl;
-
+	*/
 
     return 0;
 }
+
+/*
+* Generates a GameState object with:
+*	4 players
+*	hero in position 0
+*	2 totalCards, with no cards played (so both cards remaining in player hands)
+*	flippedCard = 3h
+*	heroHand = 2h, Ah (if heroHand == true)
+*/
+GameState* makeGenericGameState(){
+	GameState * state = nullptr;
+	Card * flippedCard = new Card("3h");
+	Card ** heroHand = new Card*[2];
+	heroHand[0] = new Card("2h");
+	heroHand[1] = new Card("Ah");
+
+	state = new GameState(4, 0, 2, flippedCard, heroHand);
+
+	delete heroHand[0];
+	delete heroHand[1];
+	delete heroHand;
+	delete flippedCard;
+	
+	return state;
+}
+
+// Function to check if two passed in gameStates are equal 
+bool checkStateEquality(GameState* leftGmSt, GameState * rightGmSt){
+	// numPlyrs
+    if (leftGmSt->getNumPlyrs() != rightGmSt->getNumPlyrs()){
+        std::cout << "numPlyrs matching problem" << std::endl;
+        return false;
+    }
+
+    // heroPosition
+    if (leftGmSt->getHeroPosition() != rightGmSt->getHeroPosition()){
+        std::cout << "heroPosition matching problem" << std::endl;
+        return false;
+    }
+
+    // totalCards
+    if (leftGmSt->getTotalCards() != rightGmSt->getTotalCards()){
+        std::cout << "totalCards matching problem" << std::endl;
+        return false;
+    }
+
+    // numCardsRemaining
+    if (leftGmSt->getCardsRemaining() != rightGmSt->getCardsRemaining()){
+        std::cout << "numCardsRemaining matching problem" << std::endl;
+        return false;
+    }
+
+    // trump
+    if (leftGmSt->getTrump() != rightGmSt->getTrump()){
+        std::cout << "trump matching problem" << std::endl;
+        return false;
+    }
+
+    // nextToAct
+    if (leftGmSt->getNextToAct() != rightGmSt->getNextToAct()){
+        std::cout << "nextToAct matching problem" << std::endl;
+        return false;
+    }
+
+    // currRound
+    if (leftGmSt->getCurrRound() != rightGmSt->getCurrRound()){
+        std::cout << "currRound matching problem" << std::endl;
+        return false;
+    }
+
+    // bids
+    for (int i = 0; i < leftGmSt->getNumPlyrs(); i++){
+        if (leftGmSt->getBid(i) != rightGmSt->getBid(i)){
+            std::cout << "bid matching problem" << std::endl;
+            return false;
+        }
+    }
+
+    // roundLead
+    for (int i = 0; i < leftGmSt->getTotalCards(); i++){
+        if (leftGmSt->getRoundLead(i) != rightGmSt->getRoundLead(i)){
+            std::cout << "roundLead matching problem" << std::endl;
+            return false;
+        }
+    }
+
+    // finalScores
+    for (int i = 0; i < leftGmSt->getNumPlyrs(); i++){
+        if (leftGmSt->getFinalScore(i) != rightGmSt->getFinalScore(i)){
+            std::cout << "finalScore matching problem" << std::endl;
+            return false;
+        }
+    }
+
+    // plyrHands
+    // Check no two cards match in a players hand
+    for (int i = 0; i < rightGmSt->getNumPlyrs(); i++) {
+        for (int j = 0; j < rightGmSt->getCardsRemaining(); j++) {
+            for (int k = j + 1; k < rightGmSt->getCardsRemaining(); k++) {
+                if (rightGmSt->getCardFromPlyrHands(i, j) != nullptr) {
+                    if (rightGmSt->getCardFromPlyrHands(i, k) != nullptr){
+                        if (*(rightGmSt->getCardFromPlyrHands(i, j)) == *(rightGmSt->getCardFromPlyrHands(i, k))){
+                            std::cout << "plyrHands duplicates cards" << std::endl;
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // check each card in rightGmSt matches a card in leftGmSt for same player
+    bool noMatch = true;
+    for (int i = 0; i < rightGmSt->getNumPlyrs(); i++) {
+        for (int j = 0; j < rightGmSt->getCardsRemaining(); j++) {
+            for (int k = 0; k < rightGmSt->getCardsRemaining(); k++) {
+                if (rightGmSt->getCardFromPlyrHands(i, j) != nullptr &&
+                    leftGmSt->getCardFromPlyrHands(i, j) != nullptr) {
+                    if (*(rightGmSt->getCardFromPlyrHands(i, j)) == *(leftGmSt->getCardFromPlyrHands(i, k))) {
+                        noMatch = false;
+                    }
+                }
+            }
+            if (noMatch){
+                std::cout << "plyrHands don't match" << std::endl;
+                return false;
+            }
+        }
+    }
+
+    // plydCrds
+    for (int i = 0; i < leftGmSt->getTotalCards(); i++){
+        for (int j = 0; j < leftGmSt->getNumPlyrs(); j++){
+            if (leftGmSt->getCardFromPlydCrds(i, j) == nullptr){
+                if (rightGmSt->getCardFromPlydCrds(i, j) != nullptr){
+                    std::cout << "plydCrds matching problem" << std::endl;
+                    return false;
+                }
+            } else {
+                if (rightGmSt->getCardFromPlydCrds(i, j) != nullptr &&
+                    leftGmSt->getCardFromPlydCrds(i, j)->getCardStr() != rightGmSt->getCardFromPlydCrds(i, j)->getCardStr()){
+                    std::cout << "plydCrds matching problem" << std::endl;
+                    return false;
+                }
+            }
+        }
+    }
+
+    // flippedCard
+    if (leftGmSt->getFlippedCard()->getCardStr() != rightGmSt->getFlippedCard()->getCardStr()){
+        std::cout << "flippedCard matching problem" << std::endl;
+        return false;
+    }
+	
+	return true;
+}
+
+
+// Only testing members that are pointers and hence need new memory allocation in copy constructor 
+void testCopyConstructor(){
+	testBidsEquality();
+	testRoundLeadEquality();
+	testFinalScoresEquality();
+	testPlyrHandsEquality();
+	testPlydCrdsEquality();
+	testFlippedCardEquality();
+	
+	// Delete original gameState and make sure everything is still accessible from copied game without any dereferencing of freed pointers
+	testNoSharedPointers(); 
+}
+
+void testBidsEquality(){
+	GameState * preState = makeGenericGameState();
+	GameState * postState = new GameState(*preState);
+	
+	for (int i = 0; i < preState->getNumPlyrs(); i++){
+		if (preState->getBid(i) != postState->getBid(i)){
+			std::cout << "TEST FAILURE: function = testBidsEquality()" << std::endl;
+			std::cout << "Bid for player " << i << " in copied gamestate. Expected: " << preState->getBid(i) << std::endl;
+			std::cout << "Bid for player " << i << " in copied gamestate. Actual: " << postState->getBid(i) << std::endl;
+			std::cout << std::endl;
+		}
+	}
+	
+	delete preState;
+	delete postState;
+}
+
+void testRoundLeadEquality(){
+	GameState * preState = makeGenericGameState();
+	GameState * postState = new GameState(*preState);
+	
+	for (int i = 0; i < preState->getTotalCards(); i++){
+		if (preState->getRoundLead(i) != postState->getRoundLead(i)){
+			std::cout << "TEST FAILURE: function = testRoundLeadEquality()" << std::endl;
+			std::cout << "roundLead for round " << i << " in copied gamestate. Expected: " << preState->getRoundLead(i) << std::endl;
+			std::cout << "roundLead for round " << i << " in copied gamestate. Actual: " << postState->getRoundLead(i) << std::endl;
+			std::cout << std::endl;
+		}
+	}
+	
+	delete preState;
+	delete postState;
+}
+
+void testFinalScoresEquality(){
+	GameState * preState = makeGenericGameState();
+	GameState * postState = new GameState(*preState);
+	
+	for (int i = 0; i < preState->getNumPlyrs(); i++){
+		if (preState->getFinalScore(i) != postState->getFinalScore(i)){
+			std::cout << "TEST FAILURE: function = testFinalScoresEquality()" << std::endl;
+			std::cout << "finalScore for player " << i << " in copied gamestate. Expected: " << preState->getFinalScore(i) << std::endl;
+			std::cout << "finalScore for player " << i << " in copied gamestate. Actual: " << postState->getFinalScore(i) << std::endl;
+			std::cout << std::endl;
+		}
+	}
+	
+	delete preState;
+	delete postState;
+}
+
+void testPlyrHandsEquality(){
+	GameState * preState = makeGenericGameState();
+	GameState * postState = new GameState(*preState);
+	
+	for (int i = 0; i < preState->getNumPlyrs(); i++){
+		for (int j = 0; j < preState->getCardsRemaining(); j++){
+			if (preState->getCardFromPlyrHands(i, j) == nullptr){
+				if (postState->getCardFromPlyrHands(i, j) != nullptr){
+					std::cout << "TEST FAILURE: function = testPlyrHandsEquality()" << std::endl;
+					std::cout << "Cards at location (" << i << ", " << j << ") not equal." << std::endl;
+				}
+			} else {
+				if (postState->getCardFromPlyrHands(i, j) != nullptr && 
+				    preState->getCardFromPlyrHands(i, j)->getCardStr() != postState->getCardFromPlyrHands(i, j)->getCardStr()){
+					std::cout << "TEST FAILURE: function = testPlyrHandsEquality()" << std::endl;
+					std::cout << "Cards at location (" << i << ", " << j << ") not equal." << std::endl;
+				}
+			}
+		}
+	}
+	
+	delete preState;
+	delete postState;
+}
+
+void testPlydCrdsEquality(){
+	GameState * preState = makeGenericGameState();
+	GameState * postState = new GameState(*preState);
+	
+	for (int i = 0; i < preState->getTotalCards(); i++){
+		for (int j = 0; j < preState->getNumPlyrs(); j++){
+			if (preState->getCardFromPlydCrds(i, j) == nullptr){
+				if (postState->getCardFromPlydCrds(i, j) != nullptr){
+					std::cout << "TEST FAILURE: function = testPlydCrdsEquality()" << std::endl;
+					std::cout << "Cards at location (" << i << ", " << j << ") not equal." << std::endl;
+					std::cout << std::endl;
+				}
+			} else {
+				if (postState->getCardFromPlydCrds(i, j) != nullptr && 
+				    preState->getCardFromPlydCrds(i, j)->getCardStr() != postState->getCardFromPlydCrds(i, j)->getCardStr()){
+					std::cout << "TEST FAILURE: function = testPlydCrdsEquality()" << std::endl;
+					std::cout << "Cards at location (" << i << ", " << j << ") not equal." << std::endl;
+					std::cout << std::endl;
+				}
+			}
+		}
+	}
+	
+	delete preState;
+	delete postState;
+}
+
+void testFlippedCardEquality(){
+	GameState * preState = makeGenericGameState();
+	GameState * postState = new GameState(*preState);
+	
+	if (preState->getFlippedCard()->getCardStr() != postState->getFlippedCard()->getCardStr()){
+		std::cout << "TEST FAILURE: function = testFlippedCardEquality()" << std::endl;
+		std::cout << "flippedCard in copied gamestate. Expected: " << preState->getFlippedCard() << std::endl;
+		std::cout << "flippedCard in copied gamestate. Actual: " << postState->getFlippedCard() << std::endl;
+		std::cout << std::endl;
+	}
+	
+	delete preState;
+	delete postState;
+}
+
+// Copies gameState then deletes original. Makes sure copied gameState still works fine.
+void testNoSharedPointers(){
+	GameState * preState = makeGenericGameState();
+	GameState * postState = new GameState(*preState);
+	delete preState;
+	preState = makeGenericGameState();
+	
+	// Check bids equality
+	for (int i = 0; i < preState->getNumPlyrs(); i++){
+		if (preState->getBid(i) != postState->getBid(i)){
+			std::cout << "TEST FAILURE: function = testNoSharedPointers()" << std::endl;
+			std::cout << "Bid for player " << i << " in copied gamestate. Expected: " << preState->getBid(i) << std::endl;
+			std::cout << "Bid for player " << i << " in copied gamestate. Actual: " << postState->getBid(i) << std::endl;
+			std::cout << std::endl;
+		}
+	}
+	
+	// Check finalScores equality
+	for (int i = 0; i < preState->getNumPlyrs(); i++){
+		if (preState->getFinalScore(i) != postState->getFinalScore(i)){
+			std::cout << "TEST FAILURE: function = testNoSharedPointers()" << std::endl;
+			std::cout << "finalScore for player " << i << " in copied gamestate. Expected: " << preState->getFinalScore(i) << std::endl;
+			std::cout << "finalScore for player " << i << " in copied gamestate. Actual: " << postState->getFinalScore(i) << std::endl;
+			std::cout << std::endl;
+		}
+	}
+	
+	// Check plyrHands equality
+	for (int i = 0; i < preState->getNumPlyrs(); i++){
+		for (int j = 0; j < preState->getCardsRemaining(); j++){
+			if (preState->getCardFromPlyrHands(i, j) == nullptr){
+				if (postState->getCardFromPlyrHands(i, j) != nullptr){
+					std::cout << "TEST FAILURE: function = testNoSharedPointers()" << std::endl;
+					std::cout << "Cards at location (" << i << ", " << j << ") not equal." << std::endl;
+				}
+			} else {
+				if (postState->getCardFromPlyrHands(i, j) != nullptr && 
+				    preState->getCardFromPlyrHands(i, j)->getCardStr() != postState->getCardFromPlyrHands(i, j)->getCardStr()){
+					std::cout << "TEST FAILURE: function = testNoSharedPointers()" << std::endl;
+					std::cout << "Cards at location (" << i << ", " << j << ") not equal." << std::endl;
+				}
+			}
+		}
+	}
+	
+	// Check plydCrds equality
+	for (int i = 0; i < preState->getTotalCards(); i++){
+		for (int j = 0; j < preState->getNumPlyrs(); j++){
+			if (preState->getCardFromPlydCrds(i, j) == nullptr){
+				if (postState->getCardFromPlydCrds(i, j) != nullptr){
+					std::cout << "TEST FAILURE: function = testNoSharedPointers()" << std::endl;
+					std::cout << "Cards at location (" << i << ", " << j << ") not equal." << std::endl;
+					std::cout << std::endl;
+				}
+			} else {
+				if (postState->getCardFromPlydCrds(i, j) != nullptr && 
+				    preState->getCardFromPlydCrds(i, j)->getCardStr() != postState->getCardFromPlydCrds(i, j)->getCardStr()){
+					std::cout << "TEST FAILURE: function = testNoSharedPointers()" << std::endl;
+					std::cout << "Cards at location (" << i << ", " << j << ") not equal." << std::endl;
+					std::cout << std::endl;
+				}
+			}
+		}
+	}
+	
+	// Check flipped card equality
+	if (preState->getFlippedCard()->getCardStr() != postState->getFlippedCard()->getCardStr()){
+		std::cout << "TEST FAILURE: function = testNoSharedPointers()" << std::endl;
+		std::cout << "flippedCard's don't match" << std::endl;
+		std::cout << std::endl;
+	}
+	
+	delete preState;
+	delete postState;
+}
+
+
+void testIsTrump(){
+	testCorrectTrump();
+	testIncorrectTrump();
+}
+
+void testCorrectTrump(){
+	GameState * state = makeGenericGameState();
+	Card * card = new Card("Ah");
+
+	if (!state->isTrump(card)){
+		std::cout << "TEST FAILURE: function = testCorrectTrump(), suit tested = Hearts" << std::endl;
+		std::cout << "GameState confirms trump correctly - FAILED" << std::endl;
+		std::cout << "Expected result: true ('Ah' is trump), Actual result: false." << std::endl;
+	}
+
+	delete card;
+	delete state;
+}
+
+void testIncorrectTrump(){
+	GameState * state = makeGenericGameState();
+	Card * card = new Card("As");
+	
+	if (state->isTrump(card)){
+		std::cout << "TEST FAILURE: function = testIncorrectTrump(), suit tested = Spades" << std::endl;
+		std::cout << "GameState returns false from isTrump() correctly - FAILED" << std::endl;
+		std::cout << "Expected result: false ('As' is not trump), Actual result: true." << std::endl;
+	}
+
+	delete card;
+	delete state;
+}
+
+void testMakeBid(){
+	makeValidBid();
+	makeInvalidLowBid();
+	makeInvalidHighBid();
+}
+
+void makeValidBid(){
+	GameState * state = makeGenericGameState();
+	
+	state->makeBid(2);
+	if (state->getBid(0) != 2){
+		std::cout << "TEST FAILURE: function = makeValidBid(), bid tested = 2" << std::endl;
+		std::cout << "Bid recorded correctly in gameState - FAILED" << std::endl;
+		std::cout << "Expected result: getBid(0) == 2, Actual result: getBid(0) == " << state->getBid(0) << std::endl;
+	}
+	if (state->getNextToAct() != 1){
+		std::cout << "TEST FAILURE: function = makeValidBid(), bid tested = 2" << std::endl;
+		std::cout << "makeBid function advances nextToAct correctly - FAILED" << std::endl;
+		std::cout << "Expected result: getNextToAct() == 1, Actual result: getNextToAct() == ";
+		std::cout << state->getNextToAct() << std::endl;
+	}
+	
+	delete state;
+}
+
+void makeInvalidLowBid(){
+	GameState * state = makeGenericGameState();
+	
+	state->makeBid(-5);
+	if (state->getBid(0) != -1){
+		std::cout << "TEST FAILURE: function = makeInvalidLowBid(), bid tested = -5" << std::endl;
+		std::cout << "Bid not recorded in gameState - FAILED" << std::endl;
+		std::cout << "Expected result: getBid(0) == -1 (default), Actual result: getBid(0) == ";
+		std::cout << state->getBid(0) << std::endl;
+	}
+	if (state->getNextToAct() != 0){
+		std::cout << "TEST FAILURE: function = makeInvalidLowBid(), bid tested = -5" << std::endl;
+		std::cout << "makeBid function does not advance nextToAct when bid is invalid - FAILED" << std::endl;
+		std::cout << "Expected result: getNextToAct() == 0, Actual result: getNextToAct() == ";
+		std::cout << state->getNextToAct() << std::endl;
+	}
+	
+	delete state;
+}
+
+void makeInvalidHighBid(){
+	GameState * state = makeGenericGameState();
+	
+	state->makeBid(5);
+	if (state->getBid(0) != -1){
+		std::cout << "TEST FAILURE: function = makeInvalidHighBid(), bid tested = 5" << std::endl;
+		std::cout << "Bid not recorded in gameState - FAILED" << std::endl;
+		std::cout << "Expected result: getBid(0) == -1 (default), Actual result: getBid(0) == ";
+		std::cout << state->getBid(0) << std::endl;
+	}
+	if (state->getNextToAct() != 0){
+		std::cout << "TEST FAILURE: function = makeInvalidHighBid(), bid tested = 5" << std::endl;
+		std::cout << "makeBid function does not advance nextToAct when bid is invalid - FAILED" << std::endl;
+		std::cout << "Expected result: getNextToAct() == 0, Actual result: getNextToAct() == ";
+		std::cout << state->getNextToAct() << std::endl;
+	}
+	
+	delete state;
+}
+
+void testPlayCard(){
+	
+}
+
+void testCardPrevUsed(){
+	cardNotUsed();
+	cardInPlydCrds();
+	cardInPlyrHands();
+	cardIsFlippedCard();
+}
+
+void cardNotUsed(){
+	
+}
+
+void cardInPlydCrds(){
+	
+}
+
+void cardInPlyrHands(){
+	
+}
+
+void cardIsFlippedCard(){
+	
+}
+
+void testCalcFinalScores(){
+	testCalcBeforeEndGame();
+	testCalcAtEndGame();
+}
+
+void testCalcBeforeEndGame(){
+	GameState * state = makeGenericGameState();
+	
+	if (state->calcFinalScores() != false){
+        std::cout << "TEST FAILURE: function = testCalcBeforeEndGame()" << std::endl;
+		std::cout << "calcFinalScores correctly recognizes game is not finished - FAILED" << std::endl;
+		std::cout << "Expected return value: false, actual return value: " << state->calcFinalScores() << std::endl;
+    }
+	
+	delete state;
+}
+
+void testCalcAtEndGame(){
+    Card * flippedCard = new Card("3h");
+    Card ** heroHand = new Card*[2];
+    heroHand[0] = new Card("2h");
+    heroHand[1] = new Card("Ah");
+	GameState * state = new GameState(4, 0, 2, flippedCard, heroHand);
+    state->addCardToPlyrHand(1, "As");
+    state->addCardToPlyrHand(1, "2d");
+    state->addCardToPlyrHand(2, "Ks");
+    state->addCardToPlyrHand(2, "Jc");
+    state->addCardToPlyrHand(3, "Jh");
+    state->addCardToPlyrHand(3, "Td");
+	
+	// Play through all 8 cards (2 each)
+	for (int i = 0; i < 8; i++){
+		state->playCard(0);
+	}
+
+    state->setBid(0, 2);
+    state->setBid(1, 0);
+    state->setBid(2, 0);
+    state->setBid(3, 0);
+    state->calcFinalScores();
+	
+    if (state->getFinalScore(0) != 1){
+        std::cout << "TEST FAILURE: function = testCalcAtEndGame()" << std::endl;
+		std::cout << "calcFinalScores correctly calculates player 0 score - FAILED" << std::endl;
+		std::cout << "Expected score: 1, actual score: " << state->getFinalScore(0) << std::endl;
+    }
+    if (state->getFinalScore(1) != 10){
+        std::cout << "TEST FAILURE: function = testCalcAtEndGame()" << std::endl;
+		std::cout << "calcFinalScores correctly calculates player 1 score - FAILED" << std::endl;
+		std::cout << "Expected score: 1, actual score: " << state->getFinalScore(1) << std::endl;
+    }
+    if (state->getFinalScore(2) != 10){
+        std::cout << "TEST FAILURE: function = testCalcAtEndGame()" << std::endl;
+		std::cout << "calcFinalScores correctly calculates player 2 score - FAILED" << std::endl;
+		std::cout << "Expected score: 1, actual score: " << state->getFinalScore(2) << std::endl;
+    }
+    if (state->getFinalScore(3) != 1){
+        std::cout << "TEST FAILURE: function = testCalcAtEndGame()" << std::endl;
+		std::cout << "calcFinalScores correctly calculates player 3 score - FAILED" << std::endl;
+		std::cout << "Expected score: 1, actual score: " << state->getFinalScore(3) << std::endl;
+    }
+	
+    delete state;
+}
+
+void testAllHandsGenerated(){
+	handsGeneratedAndPlayed();
+	handsGeneratedNonePlayed();
+	handsGeneratedSomePlayed();
+}
+
+void handsGeneratedAndPlayed(){
+    Card * flippedCard = new Card("3h");
+    Card ** heroHand = new Card*[2];
+    heroHand[0] = new Card("2h");
+    heroHand[1] = new Card("Ah");
+    GameState * state = new GameState(4, 0, 2, flippedCard, heroHand);
+    state->addCardToPlyrHand(1, "As");
+    state->addCardToPlyrHand(1, "2d");
+    state->addCardToPlyrHand(2, "Ks");
+    state->addCardToPlyrHand(2, "Jc");
+    state->addCardToPlyrHand(3, "Jh");
+    state->addCardToPlyrHand(3, "Td");
+
+    // play all cards
+    for (int i = 0; i < 8; i++){
+        state->playCard(0);
+    }
+
+    if (!state->allHandsGenerated()){
+        std::cout << "TEST FAILURE: function = handsGaneratedAndPlayed" << std::endl;
+        std::cout << "allHandsGenerated function fails to recognize that all hands were" << std::endl;
+        std::cout << "generated once they have all been played." << std::endl;
+        std::cout << std::endl;
+    }
+
+    delete flippedCard;
+    for (int i = 0; i < 2; i++){
+        delete heroHand[i];
+    }
+    delete heroHand;
+    delete state;
+}
+
+void handsGeneratedNonePlayed(){
+    Card * flippedCard = new Card("3h");
+    Card ** heroHand = new Card*[2];
+    heroHand[0] = new Card("2h");
+    heroHand[1] = new Card("Ah");
+    GameState * state = new GameState(4, 0, 2, flippedCard, heroHand);
+    state->addCardToPlyrHand(1, "As");
+    state->addCardToPlyrHand(1, "2d");
+    state->addCardToPlyrHand(2, "Ks");
+    state->addCardToPlyrHand(2, "Jc");
+    state->addCardToPlyrHand(3, "Jh");
+    state->addCardToPlyrHand(3, "Td");
+
+
+    if (!state->allHandsGenerated()){
+        std::cout << "TEST FAILURE: function = handsGaneratedAndPlayed" << std::endl;
+        std::cout << "allHandsGenerated function fails to recognize that all hands were" << std::endl;
+        std::cout << "generated even if none have been played." << std::endl;
+        std::cout << std::endl;
+    }
+
+    delete flippedCard;
+    for (int i = 0; i < 2; i++){
+        delete heroHand[i];
+    }
+    delete heroHand;
+    delete state;
+}
+
+void handsGeneratedSomePlayed(){
+    Card * flippedCard = new Card("3h");
+    Card ** heroHand = new Card*[2];
+    heroHand[0] = new Card("2h");
+    heroHand[1] = new Card("Ah");
+    GameState * state = new GameState(4, 0, 2, flippedCard, heroHand);
+    state->addCardToPlyrHand(1, "As");
+    state->addCardToPlyrHand(1, "2d");
+    state->addCardToPlyrHand(2, "Ks");
+    state->addCardToPlyrHand(2, "Jc");
+    state->addCardToPlyrHand(3, "Jh");
+    state->addCardToPlyrHand(3, "Td");
+
+    // play all cards
+    for (int i = 0; i < 3; i++){
+        state->playCard(0);
+    }
+
+    if (!state->allHandsGenerated()){
+        std::cout << "TEST FAILURE: function = handsGaneratedAndPlayed" << std::endl;
+        std::cout << "allHandsGenerated function fails to recognize that all hands were" << std::endl;
+        std::cout << "generated after some have been played." << std::endl;
+        std::cout << std::endl;
+    }
+
+    delete flippedCard;
+    for (int i = 0; i < 2; i++){
+        delete heroHand[i];
+    }
+    delete heroHand;
+    delete state;
+}
+
+void testReversePlay(){
+	// Set up a gameState, copy it.
+	// Make gameState play something then reverse it
+	// check that gameState matches copied gameState 
+	GameState * preState = nullptr;
+	GameState * postState = nullptr;
+	Card * tempCard = nullptr;
+	Card * cardPlayed = nullptr;
+	Card * flippedCard = nullptr;
+	Card ** heroHand = nullptr;
+	int handSize, numPlyrs, numPlays, heroPosition, cardPosition;
+	bool validPlay = false;
+	std::vector<std::string> playedCards;
+	
+	int numTests = 100;
+	
+	srand(237);
+	
+	for (int i = 0; i < numTests; i++){
+		// randomly generate some stuff to go into preState GameState constructor 
+		flippedCard = new Card(rand() % 13 + 1, rand() % 4 + 1);
+		//std::cout << "Generaed flippedCard: " << flippedCard->getCardStr() << std::endl;
+		handSize = rand() % 4 + 1;
+		//std::cout << "handSize = " << handSize << std::endl;
+        numPlyrs = rand() % 4 + 2;
+        //std::cout << "numPlyrs = " << numPlyrs << std::endl;
+        heroPosition = rand() % numPlyrs;
+        //std::cout << "heroPosition = " << heroPosition << std::endl;
+        preState = new GameState(numPlyrs, heroPosition, handSize, flippedCard);
+        //std::cout << "Created preState with the above info." << std::endl;
+
+        for (int i = 0; i < numPlyrs; i++) {
+            for (int j = 0; j < handSize; j++) {
+                tempCard = new Card(rand() % 13 + 1, rand() % 4 + 1);
+                while (preState->cardPrevUsed(tempCard->getCardStr())) {
+                    delete tempCard;
+                    tempCard = new Card(rand() % 13 + 1, rand() % 4 + 1);
+                }
+                //std::cout << "Adding " << tempCard->getCardStr() << " to hero hand." << std::endl;
+                preState->addCardToPlyrHand(i, tempCard->getCardStr());
+                delete tempCard;
+            }
+        }
+
+		
+		// Copy gameState
+        //std::cout << "Copying gameState to postState." << std::endl;
+		postState = new GameState(*preState);
+		
+		// Take randomly generated number of plays and play them
+		numPlays = rand() % (handSize * numPlyrs - 1) + 1;
+		//std::cout << "numPlays = " << numPlays << std::endl;
+		for (int i = 0; i < numPlays; i++){
+		    cardPosition = rand() % postState->getCardsRemaining();
+		    //std::cout << "cardPosition = " << cardPosition << std::endl;
+		    cardPlayed = new Card(postState->getCardFromPlyrHands(postState->getNextToAct(), cardPosition)->getCardStr());
+		    //std::cout << "cardPlayed = "
+            validPlay = postState->playCard(cardPosition);
+            while (!validPlay){
+                delete cardPlayed;
+                cardPosition = rand() % postState->getCardsRemaining();
+                cardPlayed = new Card(postState->getCardFromPlyrHands(postState->getNextToAct(), cardPosition)->getCardStr());
+                validPlay = postState->playCard(cardPosition);
+            }
+            //std::cout << "Playing card " << cardPlayed->getCardStr() << std::endl;
+            playedCards.push_back(cardPlayed->getCardStr());
+		}
+		// Reverse that same number of plays, popping off card to reverse from playedCards vector
+		for (int i = 0; i < numPlays; i++){
+			postState->reversePlay(playedCards.back());
+			playedCards.pop_back();
+		}
+		//std::cout << "Reversed out all the plays" << std::endl;
+		
+		if (!checkStateEquality(preState, postState)){
+			std::cout << "TEST FAILURE: function = testReversePlay()" << std::endl;
+			std::cout << "preState and postState don't match" << std::endl;
+			std::cout << std::endl;
+		}
+		
+		delete preState;
+		delete postState;
+		delete flippedCard;
+	}
+}
+
+
+
+
+
+
