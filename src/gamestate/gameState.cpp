@@ -236,15 +236,9 @@ bool GameState::isTrump(Card * card){
 }
 
 bool GameState::makeBid(int bid){
-    //std::cout << "In GameState::makeBid" << std::endl;
-    //std::cout << "Bid to make = " << bid << std::endl;
-    //std::cout << "nextToAct = " << nextToAct << std::endl;
-    //std::cout << "Current bid of that position = " << bids[nextToAct] << std::endl;
 	if (bid >= 0 && bid <= totalCards){
 		bids[nextToAct] = bid;
-		//std::cout << "Made bid. It is now: " << bids[nextToAct] << std::endl;
 		updateNextToAct();
-		//std::cout << "Updated nextToAct" << std::endl;
 		return true;
 	}
 	
@@ -252,22 +246,12 @@ bool GameState::makeBid(int bid){
 }
 
 bool GameState::playCard(int cardToPlay){
-    //std::cout << "In GameState::playCard()" << std::endl;
-    //std::cout << "nextToAct = " << nextToAct << std::endl;
-    //std::cout << "cardToPlay (int) = " << cardToPlay << std::endl;
-    //if (cardToPlay != -1 && cardToPlay < numCardsRemaining) {
-    //    std::cout << "cardToPlay (card) = " << plyrHands[nextToAct][cardToPlay]->getCardStr() << std::endl;
-    //}
     bool isValidPlay = checkValidPlay(nextToAct, cardToPlay);
 
     if (isValidPlay) {
-        //std::cout << "Card is a valid play." << std::endl;
         addCardToPlydCrds(currRound, nextToAct, plyrHands[nextToAct][cardToPlay]->getCardStr());
-        //std::cout << "Card has been played." << std::endl;
         removeCardFromPlyrHand(nextToAct, plyrHands[nextToAct][cardToPlay]->getCardStr());
-        //std::cout << "Card has been removed form plyrHand" << std::endl;
         updateNextToAct();
-        //std::cout << "nextToAct updated." << std::endl;
 
         return true;
     } else {
@@ -304,7 +288,6 @@ bool GameState::calcFinalScores(){
 }
 
 bool GameState::allHandsGenerated(){
-    //std::cout << "In GameState::allHandsGenerated()" << std::endl;
     int cardCount = 0, cardCountFromHands = 0, cardCountFromPlyd = 0;
 
     for (int i = 0; i < numPlyrs; i++){
@@ -323,96 +306,24 @@ bool GameState::allHandsGenerated(){
         }
     }
 
-    //std::cout << "cardCount = " << cardCount << std::endl;
-    //std::cout << "cardCountFromHands = " << cardCountFromHands << std::endl;
-    //std::cout << "cardCountFromPlyd = " << cardCountFromPlyd << std::endl;
-    //std::cout << "numPlyrs * totalCards = " << numPlyrs * totalCards << std::endl;
-
     if (cardCount == numPlyrs * totalCards){
-        //std::cout << "Returning true" << std::endl;
         return true;
     } else {
-        //std::cout << "Returning false" << std::endl;
         return false;
     }
 }
 
-/*
-void GameState::deleteAllHands(){
-    for (int i = 0; i < numPlyrs; i++){
-        for (int j = 0; j < numCardsRemaining; j++){
-            delete plyrHands[i][j];
-            plyrHands[i][j] = nullptr;
-        }
-    }
-}
-
-void GameState::deleteAllPlydCrds(){
-    for (int i = 0; i < numPlyrs; i++){
-        for (int j = 0; j < totalCards; j++){
-            delete plydCrds[j][i];
-            plydCrds[j][i] = nullptr;
-        }
-    }
-}
-
-void GameState::setNextToAct(int position){
-    nextToAct = position;
-}
-*/
-
 void GameState::reversePlay(std::string tempCard){
-    //std::cout << "In GameState::reversePlay" << std::endl;
     reverseNextToAct(); // Must be done first. Next two functions rely on this being already moved back one move.
     restoreCardToPlyrHand(nextToAct, tempCard);
-    //addCardToPlyrHand(nextToAct, tempCard);
-    removeCardFromPlydCrds(totalCards - numCardsRemaining, nextToAct); // **Used to pass currRound but theres a bug with updating that**
-
-    //std::cout << "Finished moving card back into player hand." << std::endl;
-    //std::cout << "Current state of game:" << std::endl;
-    //std::cout << "Bids: " << std::endl;
-    //for (int j = 0; j < numPlyrs; j++){
-    //    std::cout << "Player #" << j << ": " << bids[j] << std::endl;
-    //}
-    //std::cout << "Hands:" << std::endl;
-    //for (int j = 0; j < numPlyrs; j++){
-    //    std::cout << "Player #" << j << ": ";
-    //    for (int k = 0; k < numCardsRemaining; k++){
-    //        if (plyrHands[j][k] != nullptr) {
-    //            std::cout << plyrHands[j][k]->getCardStr() << " ";
-    //        } else {
-    //            std::cout << "-- ";
-    //        }
-    //    }
-    //    std::cout << std::endl;
-    //}
-    //std::cout << "Played Cards:" << std::endl;
-    //for (int i = 0; i < totalCards; i++){
-    //    std::cout << "Round #" << i + 1 << ": ";
-    //    for (int j = 0; j < numPlyrs; j++){
-    //        if (plydCrds[i][j] != nullptr) {
-    //            std::cout << plydCrds[i][j]->getCardStr();
-    //        } else {
-    //            std::cout << "-- ";
-    //        }
-    //    }
-    //    std::cout << std::endl;
-    //}
-
-    //addCardToPlydCrds(currRound, nextToAct, plyrHands[nextToAct][cardToPlay]->getCardStr());
-    //removeCardFromPlyrHand(nextToAct, plyrHands[nextToAct][cardToPlay]->getCardStr());
-    //updateNextToAct();
+    removeCardFromPlydCrds(totalCards - numCardsRemaining, nextToAct); // **Previously passed currRound but theres a bug with updating that**
 }
 
 void GameState::reverseNextToAct(){
-    //std::cout << "In GameState::reverseNextToAct" << std::endl;
-    //std::cout << "Current nextToAct: " << nextToAct << std::endl;
-    //std::cout << "roundLead[totalCards - numCardsRemaining] = " << roundLead[totalCards - numCardsRemaining] << std::endl;
     if (plydCrds[0][0] == nullptr){ // In bid phase (either still bidding or everyone has bid but nobody has played card yet)
         // Adding numPlyrs then mod math just to wrap from 0 to numPlyrs - 1 correctly
         nextToAct = (nextToAct + numPlyrs - 1) % numPlyrs;
     } else if (nextToAct == roundLead[totalCards - numCardsRemaining]) { // Ended round and set up next
-        //std::cout << "In correct if stmt." << std::endl;
         nextToAct = (roundLead[totalCards - numCardsRemaining - 1] + numPlyrs - 1) % numPlyrs;
         roundLead[totalCards - numCardsRemaining] = -1;
         numCardsRemaining++;
@@ -422,24 +333,6 @@ void GameState::reverseNextToAct(){
     } else { // Just within a round (moving back from plyr 3 to plyr 2, for example)
         nextToAct = (nextToAct + numPlyrs - 1) % numPlyrs;
     }
-    //std::cout << "Finished Reversing. Current nextToAct: " << nextToAct << std::endl;
-    //std::cout << "Current state of game:" << std::endl;
-    //std::cout << "Bids: " << std::endl;
-    //for (int j = 0; j < numPlyrs; j++){
-    //    std::cout << "Player #" << j << ": " << bids[j] << std::endl;
-    //}
-    //std::cout << "Hands:" << std::endl;
-    //for (int j = 0; j < numPlyrs; j++){
-    //    std::cout << "Player #" << j << ": ";
-    //    for (int k = 0; k < numCardsRemaining; k++){
-    //        if (plyrHands[j][k] != nullptr) {
-    //            std::cout << plyrHands[j][k]->getCardStr() << " ";
-    //        } else {
-    //            std::cout << "-- ";
-    //        }
-    //    }
-    //    std::cout << std::endl;
-    //}
 }
 
 bool GameState::restoreCardToPlyrHand(int plyrPosition, std::string card){
@@ -449,7 +342,6 @@ bool GameState::restoreCardToPlyrHand(int plyrPosition, std::string card){
     }
 
     // Add card back in
-    //delete plyrHands[plyrPosition][0];
     plyrHands[plyrPosition][0] = new Card(card);
 
     return true;
@@ -538,25 +430,14 @@ bool GameState::addCardToPlydCrds(int round, int position, std::string card) {
 
 
 bool GameState::removeCardFromPlyrHand(int plyrPosition, std::string card){
-    //std::cout << "In GameState::removeCardFromPlyrHand." << std::endl;
-    //std::cout << "numCardsRemaining = " << numCardsRemaining << std::endl;
-    //std::cout << "passed in plyrPosition = " << plyrPosition << std::endl;
-    //std::cout << "passed in card = " << card << std::endl;
     for (int i = 0; i < numCardsRemaining; i++){
         if (plyrHands[plyrPosition][i] != nullptr && plyrHands[plyrPosition][i]->getCardStr() == card){
-            //std::cout << "In if stmt." << std::endl;
-            //std::cout << "Card about to be deleted: " << plyrHands[plyrPosition][i]->getCardStr() << std::endl;
-            //std::cout << "plyrPosition = " << plyrPosition << ", i = " << i << std::endl;
             // Remove card
             delete plyrHands[plyrPosition][i];
-            //std::cout << "Through deleting." << std::endl;
             plyrHands[plyrPosition][i] = nullptr;
-
-            //std::cout << "Card removed." << std::endl;
 
             // Move remaining cards down in array
             int j = i + 1;
-            //std::cout << "j = " << j << std::endl;
             while (j < numCardsRemaining && plyrHands[plyrPosition][j] != nullptr){
                 plyrHands[plyrPosition][j - 1] = plyrHands[plyrPosition][j];
                 j++; // move to next card
@@ -565,7 +446,6 @@ bool GameState::removeCardFromPlyrHand(int plyrPosition, std::string card){
 
             break;
         }
-        //std::cout << "looping" << std::endl;
     }
 
     return true;
