@@ -17,7 +17,7 @@ cardtest: src/card/cardTest.cpp card.o
 decisionpointtest: src/decisionpoint/decisionpointTest.cpp decisionpoint.o card.o gamestate.o
 	g++ -o decisionpointTest src/decisionpoint/decisionpointTest.cpp decisionpoint.o gamestate.o card.o
 
-gamestatetest: src/gamestate/gameState.h src/gamestate/gameState.cpp gamestate.o card.o
+gamestatetest: src/gamestate/gamestateTest.h src/gamestate/gamestateTest.cpp gamestate.o card.o
 	g++ -o gamestateTest src/gamestate/gameState.h src/gamestate/gamestateTest.cpp gamestate.o card.o
 	
 gametest:
