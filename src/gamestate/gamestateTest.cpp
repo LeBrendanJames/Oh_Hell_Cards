@@ -13,131 +13,17 @@ int main(){
     std::cout << "-------------------------------------" << std::endl;
 	
 	testCopyConstructor();
-	//std::cout << "Through testCopyConstructor()" << std::endl;
 
 	testIsTrump();
-    //std::cout << "Through testIsTrump()" << std::endl;
 	testMakeBid();
-    //std::cout << "Through testMakeBid()" << std::endl;
 	testPlayCard();
-    //std::cout << "Through testPlayCard()" << std::endl;
 	testCardPrevUsed();
-    //std::cout << "Through testCardPrevUsed()" << std::endl;
 	testCalcFinalScores();
-    //std::cout << "Through testCalcFinalScores()" << std::endl;
 	testAllHandsGenerated();
-    //std::cout << "Through testAllHandsGenerated()" << std::endl;
 	testReversePlay();
-    //std::cout << "Through testReversePlay()" << std::endl;
 
     std::cout << std::endl;
     std::cout << "COMPLETED GAMESTATE TESTS" << std::endl;
-	
-
-	/*
-    //std::cout << std::endl;
-    //std::cout << "Testing playCard:" << std::endl;
-    game = new GameState(4, 0, 2, flippedCard, heroHand);
-    game->addCardToPlyrHand(1, "As");
-    game->addCardToPlyrHand(1, "2d");
-    game->addCardToPlyrHand(2, "Ks");
-    game->addCardToPlyrHand(2, "Jc");
-    game->addCardToPlyrHand(3, "Jh");
-    game->addCardToPlyrHand(3, "Td");
-    if (game->playCard(-1) == false){
-        //std::cout << "TEST: invalid playCard(-1) = false - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: invalid playCard(-1) = false - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->playCard(2) == false){
-        //std::cout << "TEST: invalid playCard(2) = false - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: invalid playCard(2) = false - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->playCard(0) == true){
-        //std::cout << "TEST: playCard('2h') return = true - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: playCard('2h') return = true - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->getCardFromPlydCrds(0, 0)->getCardStr() == "2h"){
-        //std::cout << "TEST: playCard(0) correctly adds card to plydCrds - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: playCard(0) correctly adds card to plydCrds - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->getCardFromPlyrHands(0, 0)->getCardStr() == "Ah"){
-        //std::cout << "TEST: playCard(0) correctly moves other card into used position - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: playCard(0) correctly moves other card into used position - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->getCardFromPlyrHands(0, 1) == nullptr){
-        //std::cout << "TEST: playCard(0) correctly moves remaining cards forward in array - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: playCard(0) correctly moves remaining cards forward in array - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->getNextToAct() == 1){
-        //std::cout << "TEST: playCard('2h') - getNextToAct - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: playCard('2h') - getNextToAct - FAILED" << std::endl;
-        testsFailed++;
-    }
-    game->playCard(0);
-    game->playCard(0);
-    game->playCard(0);
-    if (game->getCardsRemaining() == 1){
-        //std::cout << "TEST: playCard correctly updates cards remaining at end of trick - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: playCard correctly updates cards remaining at end of trick - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->calcFinalScores() == false){
-        //std::cout << "TEST: calcFinalScores correctly recognizes game is not finished - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: calcFinalScores correctly recognizes game is not finished - FAILED" << std::endl;
-        testsFailed++;
-    }
-    if (game->getNextToAct() == 3){
-        //std::cout << "TEST: updateNextToAct correctly finds trick winner - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: updateNextToAct correctly finds trick winner - FAILED" << std::endl;
-        testsFailed++;
-    }
-    game->playCard(0);
-    if (game->getNextToAct() == 0){
-        //std::cout << "TEST: updateNextToAct correctly wraps - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: updateNextToAct correctly wraps - FAILED" << std::endl;
-        testsFailed++;
-    }
-    game->playCard(0);
-    game->playCard(0);
-    game->playCard(0);
-    if (game->getNextToAct() == -1){
-        //std::cout << "TEST: updateNextToAct correctly recognizes end of game - PASSED" << std::endl;
-        testsPassed++;
-    } else {
-        std::cout << "TEST: updateNextToAct correctly recognizes end of game - FAILED" << std::endl;
-        testsFailed++;
-    }
-    delete game;
-    game = nullptr;
-	*/
 
     return 0;
 }
