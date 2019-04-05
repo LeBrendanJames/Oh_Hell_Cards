@@ -33,6 +33,14 @@ void makeInvalidHighBid();
 
 // PLAYCARD MEMBER FUNCTION 
 void testPlayCard();
+void playedCardPlacementCorrect();
+void multiplePlayedCardPlacementCorrect();
+void roundWinnerNextToAct();
+void numCardsRemainingDecCorrect();
+void cardRemovalUponPlay();
+void nextToActEndGame();
+void invalidPlayCardOutOfRange();
+void invalidPlayNotFollowSuit();
 
 // CARDPREVUSED MEMBER FUNCTION 
 void testCardPrevUsed();
