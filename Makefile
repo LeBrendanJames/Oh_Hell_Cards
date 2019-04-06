@@ -1,6 +1,9 @@
 
+ohhell: src/ohHell.cpp game.o gamestate.o decisionpoint.o card.o 
+	g++ -o ohHell src/ohHell.cpp game.o gamestate.o decisionpoint.o card.o
+
 game.o: src/game/Game.h src/game/Game.cpp 
-	g++ -o game.o -c Game.cpp 
+	g++ -o game.o -c src/game/Game.cpp 
 
 decisionpoint.o: src/decisionpoint/DecisionPoint.h src/decisionpoint/DecisionPoint.cpp
 	g++ -c src/decisionpoint/DecisionPoint.cpp 
