@@ -7,8 +7,8 @@
 #define CARDS_GAME_H
 
 #include <iostream>
-#include "GameState.h"
-#include "DecisionPoint.h"
+#include "../gamestate/GameState.h"
+#include "../decisionpoint/DecisionPoint.h"
 
 const int NUM_SIMS = 1;
 
