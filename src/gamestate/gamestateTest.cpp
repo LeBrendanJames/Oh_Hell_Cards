@@ -142,7 +142,7 @@ bool checkStateEquality(GameState* leftGmSt, GameState * rightGmSt){
     for (int i = 0; i < rightGmSt->getNumPlyrs(); i++) {
         for (int j = 0; j < rightGmSt->getCardsRemaining(); j++) {
             for (int k = 0; k < rightGmSt->getCardsRemaining(); k++) {
-                if (rightGmSt->getCardFromPlyrHands(i, j) != nullptr &&
+                if (rightGmSt->getCardFromPlyrHands(i, k) != nullptr &&
                     leftGmSt->getCardFromPlyrHands(i, j) != nullptr) {
                     if (*(rightGmSt->getCardFromPlyrHands(i, j)) == *(leftGmSt->getCardFromPlyrHands(i, k))) {
                         noMatch = false;
@@ -493,22 +493,22 @@ void makeInvalidHighBid(){
 void testPlayCard(){
 	// 1. Test that card played ends up in correct slot of plydCrds 
 	playedCardPlacementCorrect();
-	
+
 	// 2. Test that once two cards are played they end up in correct spots in plydCrds
 	multiplePlayedCardPlacementCorrect();
-	
+
 	// 3. Check that once card is played to end a round, the nextToAct player is updated to the trick winner
 	roundWinnerNextToAct();
-	
+
 	// 4. Check that numCardsRemaining updated once a round ends as well
 	numCardsRemainingDecCorrect();
-	
+
 	// 5. Check that as cards are played they are removed from player hands and the other cards are moved down the array
 	cardRemovalUponPlay();
-	
+
 	// 6. Check that once final card is played that nextToAct is set to -1
 	nextToActEndGame();
-	
+
 	// 7. Try various invalid plays (there are two ways for a play to be invalid - try them both)
 		// 7a. make sure playCard returns false
 		// 7b. make sure nothing else is changed about gameState when it returns false 
@@ -522,7 +522,7 @@ void playedCardPlacementCorrect(){
 	
 	state->playCard(0);
 	
-	if (state->getCardFromPlydCrds(0, 0) == nullptr || state->getCardFromPlydCrds(0, 0)->getCardStr(); != "2h"){
+	if (state->getCardFromPlydCrds(0, 0) == nullptr || state->getCardFromPlydCrds(0, 0)->getCardStr() != "2h"){
 		std::cout << "TEST FAILURE: function = playedCardPlacementCorrect(), card played = 2h" << std::endl;
 		std::cout << "First card played placed in plydCrds slot (0, 0) - FAILED" << std::endl;
 	}
@@ -538,7 +538,7 @@ void multiplePlayedCardPlacementCorrect(){
 	state->playCard(0);
 	state->playCard(1);
 	
-	if (state->getCardFromPlydCrds(0, 0) == nullptr || state->getCardFromPlydCrds(0, 0)->getCardStr(); != "2h" ||
+	if (state->getCardFromPlydCrds(0, 0) == nullptr || state->getCardFromPlydCrds(0, 0)->getCardStr() != "2h" ||
 	state->getCardFromPlydCrds(0, 1) == nullptr || state->getCardFromPlydCrds(0, 1)->getCardStr() != "Qs"){
 		std::cout << "TEST FAILURE: function = playedCardPlacementCorrect(), card played = 2h" << std::endl;
 		std::cout << "First card played placed in plydCrds slot (0, 0) - FAILED" << std::endl;
@@ -599,7 +599,9 @@ void cardRemovalUponPlay(){
 	
 	state->playCard(0);
 	
-	if (state->getCardFromPlyrHands(0, 0) != nullptr && state->getCardFromPlydCrds(0, 0)->getCardStr(); != "Ah" && state->getCardFromPlyrHands(0, 1) == nullptr){
+	if (!(state->getCardFromPlyrHands(0, 0) != nullptr &&
+		  state->getCardFromPlydCrds(0, 0)->getCardStr() != "Ah" &&
+		  state->getCardFromPlyrHands(0, 1) == nullptr)){
 		std::cout << "TEST FAILURE: function = cardRemovalUponPlay(), card played = 2h" << std::endl;
 		std::cout << "Card not correctly removed from player hand." << std::endl;
 		std::cout << "Expected card to be removed and remaining cards to be slid down into its place." << std::endl;
@@ -612,10 +614,10 @@ void cardRemovalUponPlay(){
 			std::cout << state->getCardFromPlyrHands(0, 0)->getCardStr();
 		}
 		std::cout << ", ";
-		if (state->getCardFromPlyrHands(0, 0) == nullptr){
+		if (state->getCardFromPlyrHands(0, 1) == nullptr){
 			std::cout << "NULL";
 		} else {
-			std::cout << state->getCardFromPlyrHands(0, 0)->getCardStr();
+			std::cout << state->getCardFromPlyrHands(0, 1)->getCardStr();
 		}
 		std::cout << std::endl;
 	}
@@ -654,7 +656,7 @@ void invalidPlayCardOutOfRange(int cardPosition){
 	GameState * preState = makeGenericGameState();
 	GameState * postState = new GameState(*preState);
 	
-	bool playCardResult = state->playCard(cardPosition);
+	bool playCardResult = postState->playCard(cardPosition);
 	
 	if (playCardResult != false){
 		std::cout << "TEST FAILURE: function = invalidPlayCardOutOfRange(), card position played = " << cardPosition << std::endl;
@@ -683,14 +685,14 @@ void invalidPlayNotFollowSuit(){
 	postState->playCard(0);
 	GameState * preState = new GameState(*postState);
 	
-	bool playCardResult = postState->playCard(1); // Invalid as not following suit 
+	bool playCardResult = postState->playCard(1); // Invalid as not following suit
 	
 	if (playCardResult != false){
-		std::cout << "TEST FAILURE: function = invalidPlayNotFollowSuit()" << cardPosition << std::endl;
+		std::cout << "TEST FAILURE: function = invalidPlayNotFollowSuit()" << std::endl;
 		std::cout << "card attempted to be played does not follow suit when following suit is possible" << std::endl;
 	}
 	if (!checkStateEquality(preState, postState)){
-		std::cout << "TEST FAILURE: function = invalidPlayNotFollowSuit()" << cardPosition << std::endl;
+		std::cout << "TEST FAILURE: function = invalidPlayNotFollowSuit()" << std::endl;
 		std::cout << "preState != postState, meaning playCard changed something about state " << std::endl;
 		std::cout << "even though play was invalid and should have caused playCard to abort before making any changes to gameState." << std::endl;		
 	}

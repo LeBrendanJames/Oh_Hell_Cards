@@ -39,7 +39,7 @@ void roundWinnerNextToAct();
 void numCardsRemainingDecCorrect();
 void cardRemovalUponPlay();
 void nextToActEndGame();
-void invalidPlayCardOutOfRange();
+void invalidPlayCardOutOfRange(int cardPosition);
 void invalidPlayNotFollowSuit();
 
 // CARDPREVUSED MEMBER FUNCTION 
