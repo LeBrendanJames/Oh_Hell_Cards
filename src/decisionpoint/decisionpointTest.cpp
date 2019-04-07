@@ -16,16 +16,46 @@ int main(){
     std::cout << std::endl;
     std::cout << "DECISIONPOINT CLASS TESTS" << std::endl;
     std::cout << "-------------------------------------" << std::endl;
+
+    // Semi-complete game
     Card * flippedCard = new Card("3h");
     Card ** heroHand = new Card*[2];
     heroHand[0] = new Card("2h");
     heroHand[1] = new Card("Ah");
-    GameState * game = new GameState(4, 0, 2, flippedCard, heroHand);
+    GameState * game = new GameState(4, 1, 2, flippedCard, heroHand);
+    game->setBid(0, 0);
+    game->setBid(1, 2);
+    game->setBid(2, 0);
+    game->setBid(3, 0);
+    game->addCardToPlyrHand(0, "5d");
+    game->addCardToPlyrHand(2, "6d");
+    game->addCardToPlyrHand(3, "7d");
+    game->playCard(0);
+    game->playCard(0);
+    game->playCard(0);
+    game->playCard(0);
+    auto * dPoint = new DecisionPoint(game);
+    if (dPoint->makePlay()->getCardStr() != "Ah"){
+        std::cout << "Error with semi-complete game" << std::endl;
+    }
+    delete game;
+    delete dPoint;
+    delete flippedCard;
+    delete heroHand[0];
+    delete heroHand[1];
+    delete heroHand;
+
+
+    flippedCard = new Card("3h");
+    heroHand = new Card*[2];
+    heroHand[0] = new Card("2h");
+    heroHand[1] = new Card("Ah");
+    game = new GameState(4, 0, 2, flippedCard, heroHand);
     game->setBid(0, 2);
     game->setBid(1, 0);
     game->setBid(2, 0);
     game->setBid(3, 0);
-    auto * dPoint = new DecisionPoint(game);
+    dPoint = new DecisionPoint(game);
     if (dPoint->getScore(0) == -1 && dPoint->getScore(3) == -1){
         std::cout << "TEST: DecisionPoint constructor sets scores vector correctly - PASSED" << std::endl;
         testsPassed++;
@@ -168,6 +198,10 @@ int main(){
     //dPoint = nullptr;
     delete game;
     game = nullptr;
+
+    std::cout << "SUMMARY:" << std::endl;
+    std::cout << "---------------------" << std::endl;
+    std::cout << "Tests Passed: " << testsPassed << ", Tests Failed: " << testsFailed << std::endl;
 
 
     return 0;
