@@ -26,7 +26,6 @@ int DecisionPoint::getScore(int index){
 
 
 int DecisionPoint::makeBid(){
-
 	int optimalBid = -1;
 
     if (!gmSt->allHandsGenerated()) {
@@ -35,10 +34,8 @@ int DecisionPoint::makeBid(){
             return -1;
         }
     }
-	
-	// for bid = 0 to totalCards
+
 	for (int i  = 0; i <= gmSt->getTotalCards(); i++){
-		// copy gameState
 		GameState * newGmSt = new GameState(*gmSt);
 		
 		DecisionPoint * newDPoint = nullptr;
@@ -51,7 +48,6 @@ int DecisionPoint::makeBid(){
             // so that it is simulating from the next player to act
 			newDPoint = new DecisionPoint(newGmSt);
 
-			// newDPoint->makeBid()
 			newDPoint->makeBid();
 			
 		} else {
@@ -167,8 +163,6 @@ bool DecisionPoint::genOpponentHands(){
             masterGmSt->addCardToPlyrHand(i, indivGmSt->getCardFromPlyrHands(i, j)->getCardStr());
         }
 
-        //std::cout << "Copied that hand to masterGmSt" << std::endl;
-
         delete indivGmSt;
         indivGmSt = nullptr;
     }
@@ -192,7 +186,6 @@ bool DecisionPoint::genOpponentHands(){
 
     // Only change after this function has been run is that gmSt member variable has all player hands filled
     // with cards that would have bid numbers that match what they actually bid in the game
-
     return true;
 }
 
@@ -298,7 +291,7 @@ Card* DecisionPoint::makePlay(){
         // Otherwise, card is played and nextToAct is updated (and anything else that changes about gameState)
 		//bool validPlay = gmSt->playCard(i);
 
-		if ((gmSt->playCard(i))){ // if validPlay, which returns true, then play has been made
+		if ((gmSt->playCard(i))){ // if this returns true, then play has been made
 
 		    if (gmSt->getNextToAct() != -1){
                 // Save scores array in tempScores befre making next play

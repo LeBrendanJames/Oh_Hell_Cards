@@ -1,4 +1,5 @@
 
+#include <chrono>
 #include "../card/Card.h"
 #include "../gamestate/GameState.h"
 #include "DecisionPoint.h"
@@ -9,6 +10,8 @@ int runBidSims(int numSims, GameState * gmSt);
 
 int main(){
     int testsPassed = 0, testsFailed = 0;
+
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
     srand(237); // Seeding the same to force determinism in tests
 
@@ -202,6 +205,10 @@ int main(){
     std::cout << "SUMMARY:" << std::endl;
     std::cout << "---------------------" << std::endl;
     std::cout << "Tests Passed: " << testsPassed << ", Tests Failed: " << testsFailed << std::endl;
+
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+    std::cout << "Total time (seconds): " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << std::endl;
 
 
     return 0;
