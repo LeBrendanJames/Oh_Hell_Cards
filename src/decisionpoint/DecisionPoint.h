@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <vector>
+#include <cstdlib>
 #include "../gamestate/GameState.h"
 #include "../card/Card.h"
 

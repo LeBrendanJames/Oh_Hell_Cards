@@ -83,13 +83,11 @@ bool DecisionPoint::genOpponentHands(){
         // So, this copied gameState holds bids for everyone, but no hands yet
     GameState * masterGmSt = new GameState(gmSt->getNumPlyrs(), gmSt->getHeroPosition(),
                                            gmSt->getTotalCards(), gmSt->getFlippedCard());
-
     // copy over bids
     for (int i = 0; i < masterGmSt->getNumPlyrs(); i++){
         masterGmSt->setBid(i, gmSt->getBid(i));
     }
-
-    // Copy over any played cards from gmSt to masterGmSt
+    // Copy over any played cards from gmSt back into masterGmSt plyrHands 2D array
     for (int i = 0; i < gmSt->getTotalCards(); i++){
         for (int j = 0; j < gmSt->getNumPlyrs(); j++){
             if (gmSt->getCardFromPlydCrds(i, j) != nullptr){
@@ -101,72 +99,76 @@ bool DecisionPoint::genOpponentHands(){
 
     // For each player, produce a hand that matches their bid and copy it in to masterGmSt
     for (int i = 0; i < gmSt->getNumPlyrs(); i++) {
-        GameState * indivGmSt = nullptr;
-        DecisionPoint * newDPoint = nullptr;
+        if (masterGmSt->getBid(i) == -1){ // Player hasn't bid yet, so hand is totally random
+            //std::cout << "In 'if' of if stmt" << std::endl;
+            addRandomHand(masterGmSt, i);
+        } else {
+            GameState *indivGmSt = nullptr;
+            DecisionPoint *newDPoint = nullptr;
+            int noMatchRemaining = 30;
+            bool handGenerated = false;
+            std::vector<std::string> tempBestHand;
 
-        int noMatchCount = 0;
-
-        do {
-            noMatchCount++;
-
-            // Reset indivGmSt and newDPoint
-            delete indivGmSt;
-            indivGmSt = nullptr;
-            delete newDPoint;
-            newDPoint = nullptr;
-
-            // Make a copy of masterGameState, delete bids for player in question + any acting after player
-            //indivGmSt = new GameState(*masterGmSt);
-            indivGmSt = new GameState(masterGmSt->getNumPlyrs(), masterGmSt->getHeroPosition(),
-                                      masterGmSt->getTotalCards(), masterGmSt->getFlippedCard());
-            // For all players up to and including current position in question, copy over known cards in hand
-            for (int j = 0; j <= i; j++){
-                for (int k = 0; k < masterGmSt->getTotalCards(); k++){
-                    if (masterGmSt->getCardFromPlyrHands(j, k) != nullptr){
-                        indivGmSt->addCardToPlyrHand(j, masterGmSt->getCardFromPlyrHands(j, k)->getCardStr());
+            do {
+                // Make a copy of masterGameState, delete bids for player in question + any acting after player
+                indivGmSt = new GameState(masterGmSt->getNumPlyrs(), masterGmSt->getHeroPosition(),
+                                          masterGmSt->getTotalCards(), masterGmSt->getFlippedCard());
+                // For all players up to and including current position in question, copy over known cards in hand
+                for (int j = 0; j <= i; j++) {
+                    for (int k = 0; k < masterGmSt->getTotalCards(); k++) {
+                        if (masterGmSt->getCardFromPlyrHands(j, k) != nullptr) {
+                            indivGmSt->addCardToPlyrHand(j, masterGmSt->getCardFromPlyrHands(j, k)->getCardStr());
+                        }
                     }
                 }
-            }
 
-            // put random hands in for everyone from player in question forward
+                // put random hands in for everyone from player in question forward
                 // Important to put hands in for everyone so that when calling makeBid() we don't loop back into
                 // genOpponentHands recursively
-                // **make use of 'excludedCards' to make sure I'm not generating hands that contain
-                // cards that are in heroHand in gmSt**
-            for (int j = i; j < indivGmSt->getNumPlyrs(); j++) {
-                addRandomHand(indivGmSt, j); // Adds hand that doesn't have cards previously used in indivGmSt or gmSt
-            }
+                for (int j = i; j < indivGmSt->getNumPlyrs(); j++) {
+                    addRandomHand(indivGmSt, j); // Adds hand that doesn't have cards prev used in indivGmSt or gmSt
+                }
 
+                // Make sure that I've got gameState set on the correct player next to act before creating DecisionPoint
+                for (int j = 0; j < masterGmSt->getNumPlyrs(); j++) {
+                    indivGmSt->setBid(j, -1);
+                    if (j < i){
+                        indivGmSt->makeBid(masterGmSt->getBid(j));
+                    }
+                }
 
-            // Make sure that I've got gameState set on the correct player next to act before creating DecisionPoint
-            for (int j = 0; j < masterGmSt->getNumPlyrs(); j++){
-                indivGmSt->setBid(j, -1);
-            }
-            for (int j = 0; j < i; j++){ //TODO: I think this can be moved in previous loop within an if (j < i) stmt
-                indivGmSt->makeBid(masterGmSt->getBid(j)); // Sets bid in indivGmSt corrrectly and updates nextToAct
-            }
+                // Make a decisionPoint with that and check that the bid from that player would be correct
+                newDPoint = new DecisionPoint(indivGmSt);
+                int bidDiff = abs(newDPoint->makeBid() - masterGmSt->getBid(i));
 
-            // Make a decisionPoint with that and check that the bid from that player would be correct
-            newDPoint = new DecisionPoint(indivGmSt);
+                if (bidDiff == 0){
+                    handGenerated = true;
+                } else if (bidDiff <= 2){
+                    noMatchRemaining--;
+                    noMatchRemaining = std::min(noMatchRemaining, bidDiff * 5);
+                }
+                // Save hand somehow
+                tempBestHand.clear();
+                for (int j = 0; j < indivGmSt->getTotalCards(); j++){
+                    tempBestHand.push_back(indivGmSt->getCardFromPlyrHands(i, j)->getCardStr());
+                }
+                // Reset indivGmSt and newDPoint
+                delete indivGmSt;
+                indivGmSt = nullptr;
+                delete newDPoint;
+                newDPoint = nullptr;
+            } while (!handGenerated && noMatchRemaining > 0);
 
-        // while (bid from decisionPoint doesn't match actual bid)
-        } while (masterGmSt->getBid(i) != -1 && newDPoint->makeBid() != masterGmSt->getBid(i) && noMatchCount < 300);
-
-
-        delete newDPoint;
-        newDPoint = nullptr;
-
-        // Take that generated hand and place it in the first copied gameState (at top of function)
+            // Take that generated hand and place it in the first copied gameState (at top of function)
             // Still need to do the above for hero so that positions after can look at hero's hand as random,
             // but actual game will obviously have just normal hero's hand
-        for (int j = 0; j < masterGmSt->getTotalCards(); j++){
-            masterGmSt->addCardToPlyrHand(i, indivGmSt->getCardFromPlyrHands(i, j)->getCardStr());
+            for (int j = 0; j < masterGmSt->getTotalCards(); j++){
+                masterGmSt->addCardToPlyrHand(i, tempBestHand[j]);
+            }
         }
-
-        delete indivGmSt;
-        indivGmSt = nullptr;
     }
 
+    //std::cout << "Finished with most of function" << std::endl;
 
     // Take that first copy of gameState and copy everyone except hero's hands over to the actual gameState contained in
     // the calling DecisionPoint
@@ -259,6 +261,8 @@ bool DecisionPoint::isValidSuit(Card * card, bool * validSuits){
 	return true;
 }
 
+
+//TODO: cut out early if score can't ever get above maxScore (i.e. won more tricks than you bid and already found an option where you get the bonus)
 Card* DecisionPoint::makePlay(){
     std::vector<int> tempScores;
     tempScores.reserve(gmSt->getNumPlyrs());
@@ -286,14 +290,11 @@ Card* DecisionPoint::makePlay(){
 
 		Card * tempCardPlayed = new Card(*(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), i)));
 
-		// add card played
-        // If play is invalid, nothing changes about gameState
-        // Otherwise, card is played and nextToAct is updated (and anything else that changes about gameState)
-		//bool validPlay = gmSt->playCard(i);
-
 		if ((gmSt->playCard(i))){ // if this returns true, then play has been made
 
-		    if (gmSt->getNextToAct() != -1){
+		    // TODO: Make base case when cardsRemaining <= 1 rather than when game is over
+            // This will allow me to just quickly play all the last round without the whole makePlay() overhaead
+		    if (gmSt->getNextToAct() != -1){ // TODO: Make an endOfGame finction in GameState t omake this line more readable
                 // Save scores array in tempScores befre making next play
                 for (int j = 0; j < gmSt->getNumPlyrs(); j++) {
                     tempScores[j] = scores[j];
@@ -325,7 +326,6 @@ Card* DecisionPoint::makePlay(){
                             delete cardPlayed;
                             cardPlayed = nullptr;
                         }
-                        //cardPlayed = new Card(tempCardPlayed->getCardStr());
                         cardPlayed = new Card(*tempCardPlayed);
                         for (int j = 0; j < gmSt->getNumPlyrs(); j++){
                             tempScores[j] = 0;
@@ -345,7 +345,6 @@ Card* DecisionPoint::makePlay(){
                 }
 				
 			} else { // base case - end of game
-			    //cardPlayed = new Card(tempCardPlayed->getCardStr());
 			    cardPlayed = new Card(*tempCardPlayed);
                 gmSt->calcFinalScores();
                 if (gmSt->getFinalScore(currPosition) > scores[currPosition]){
