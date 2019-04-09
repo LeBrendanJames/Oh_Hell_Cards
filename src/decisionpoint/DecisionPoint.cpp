@@ -294,7 +294,7 @@ Card* DecisionPoint::makePlay(){
 
 		    // TODO: Make base case when cardsRemaining <= 1 rather than when game is over
             // This will allow me to just quickly play all the last round without the whole makePlay() overhaead
-		    if (gmSt->getNextToAct() != -1){ // TODO: Make an endOfGame finction in GameState t omake this line more readable
+		    if (gmSt->getCardsRemaining() > 1 || gmSt->getNextToAct() == gmSt->getRoundLead(gmSt->getTotalCards() - 1)){
                 // Save scores array in tempScores befre making next play
                 for (int j = 0; j < gmSt->getNumPlyrs(); j++) {
                     tempScores[j] = scores[j];
@@ -344,13 +344,22 @@ Card* DecisionPoint::makePlay(){
                     }
                 }
 				
-			} else { // base case - end of game
+			} else { // base case - last round of game
 			    cardPlayed = new Card(*tempCardPlayed);
+			    std::vector<std::string> lastRoundCards;
+			    while (gmSt->getNextToAct() != -1){
+			        lastRoundCards.push_back(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), 0)->getCardStr());
+			        gmSt->playCard(0);
+			    }
                 gmSt->calcFinalScores();
                 if (gmSt->getFinalScore(currPosition) > scores[currPosition]){
                     for (int j = 0; j < gmSt->getNumPlyrs(); j++) {
                         scores[j] = gmSt->getFinalScore(j);
                     }
+                }
+                for (int j = 0; j < gmSt->getNumPlyrs() - 1; j++){
+                    gmSt->reversePlay(lastRoundCards.back());
+                    lastRoundCards.pop_back();
                 }
 			}
 
