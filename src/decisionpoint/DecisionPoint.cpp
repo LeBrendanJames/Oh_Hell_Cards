@@ -100,7 +100,6 @@ bool DecisionPoint::genOpponentHands(){
     // For each player, produce a hand that matches their bid and copy it in to masterGmSt
     for (int i = 0; i < gmSt->getNumPlyrs(); i++) {
         if (masterGmSt->getBid(i) == -1){ // Player hasn't bid yet, so hand is totally random
-            //std::cout << "In 'if' of if stmt" << std::endl;
             addRandomHand(masterGmSt, i);
         } else {
             GameState *indivGmSt = nullptr;
@@ -167,8 +166,6 @@ bool DecisionPoint::genOpponentHands(){
             }
         }
     }
-
-    //std::cout << "Finished with most of function" << std::endl;
 
     // Take that first copy of gameState and copy everyone except hero's hands over to the actual gameState contained in
     // the calling DecisionPoint
@@ -262,7 +259,8 @@ bool DecisionPoint::isValidSuit(Card * card, bool * validSuits){
 }
 
 
-//TODO: cut out early if score can't ever get above maxScore (i.e. won more tricks than you bid and already found an option where you get the bonus)
+// TODO: cut out early if score can't ever get above maxScore
+// (i.e. won more tricks than you bid and already found an option where you get the bonus)
 Card* DecisionPoint::makePlay(){
     std::vector<int> tempScores;
     tempScores.reserve(gmSt->getNumPlyrs());
@@ -292,7 +290,6 @@ Card* DecisionPoint::makePlay(){
 
 		if ((gmSt->playCard(i))){ // if this returns true, then play has been made
 
-		    // TODO: Make base case when cardsRemaining <= 1 rather than when game is over
             // This will allow me to just quickly play all the last round without the whole makePlay() overhaead
 		    if (gmSt->getCardsRemaining() > 1 || gmSt->getNextToAct() == gmSt->getRoundLead(gmSt->getTotalCards() - 1)){
                 // Save scores array in tempScores befre making next play
@@ -343,12 +340,12 @@ Card* DecisionPoint::makePlay(){
                         tempScores[j] = 0;
                     }
                 }
+
+                gmSt->reversePlay();
 				
 			} else { // base case - last round of game
 			    cardPlayed = new Card(*tempCardPlayed);
-			    std::vector<std::string> lastRoundCards;
 			    while (gmSt->getNextToAct() != -1){
-			        lastRoundCards.push_back(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), 0)->getCardStr());
 			        gmSt->playCard(0);
 			    }
                 gmSt->calcFinalScores();
@@ -357,13 +354,10 @@ Card* DecisionPoint::makePlay(){
                         scores[j] = gmSt->getFinalScore(j);
                     }
                 }
-                for (int j = 0; j < gmSt->getNumPlyrs() - 1; j++){
-                    gmSt->reversePlay(lastRoundCards.back());
-                    lastRoundCards.pop_back();
+                for (int j = 0; j < gmSt->getNumPlyrs(); j++){
+                    gmSt->reversePlay();
                 }
 			}
-
-			gmSt->reversePlay(tempCardPlayed->getCardStr());
 		}
 
 		delete tempCardPlayed;
