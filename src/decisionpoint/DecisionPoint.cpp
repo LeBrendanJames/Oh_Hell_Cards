@@ -35,7 +35,8 @@ int DecisionPoint::makeBid(){
         }
     }
 
-	for (int i  = 0; i <= gmSt->getTotalCards(); i++){
+    int i = gmSt->getTotalCards();
+    while (i >= 0 && scores[this->position] <= BID_CORRECT_BONUS){
 		GameState * newGmSt = new GameState(*gmSt);
 		
 		DecisionPoint * newDPoint = nullptr;
@@ -53,9 +54,8 @@ int DecisionPoint::makeBid(){
 		} else {
 			// make newDecisionPoint with copied gameState 
 			newDPoint = new DecisionPoint(newGmSt);
-			
-			// newDecisionPoint->makePlay()
-			Card * playReturn = newDPoint->makePlay(); // playCard (the equivalent of makeBid, above) happens within this function & updates newGmSt
+
+			newDPoint->makePlay();
 		}
 		
 		// Look @ scores here?
@@ -69,7 +69,8 @@ int DecisionPoint::makeBid(){
 		// Delete that new DecisionPoint here
 		delete newDPoint;
 		newDPoint = nullptr;
-		
+
+        i--;
 	}
 
 	return optimalBid;
