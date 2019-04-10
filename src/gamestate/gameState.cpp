@@ -313,9 +313,9 @@ bool GameState::allHandsGenerated(){
     }
 }
 
-void GameState::reversePlay(std::string tempCard){
+void GameState::reversePlay(){
     reverseNextToAct(); // Must be done first. Next two functions rely on this being already moved back one move.
-    restoreCardToPlyrHand(nextToAct, tempCard);
+    restoreCardToPlyrHand(nextToAct);
     removeCardFromPlydCrds(totalCards - numCardsRemaining, nextToAct); // **Previously passed currRound but theres a bug with updating that**
 }
 
@@ -335,14 +335,14 @@ void GameState::reverseNextToAct(){
     }
 }
 
-bool GameState::restoreCardToPlyrHand(int plyrPosition, std::string card){
+bool GameState::restoreCardToPlyrHand(int plyrPosition){
     for (int i = numCardsRemaining - 1; i > 0; i--){
         // Move cards out one slot so that 1st slot is open fro card to be added back in
         plyrHands[plyrPosition][i] = plyrHands[plyrPosition][i - 1];
     }
 
     // Add card back in
-    plyrHands[plyrPosition][0] = new Card(card);
+    plyrHands[plyrPosition][0] = new Card(*(plydCrds[totalCards - numCardsRemaining][plyrPosition]));
 
     return true;
 }

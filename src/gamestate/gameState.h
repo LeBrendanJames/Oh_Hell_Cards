@@ -43,7 +43,7 @@ public:
     bool cardPrevUsed(std::string card);
 	bool calcFinalScores();
 	bool allHandsGenerated();
-	void reversePlay(std::string tempCard);
+	void reversePlay();
 
 private:
     int numPlyrs;
@@ -65,7 +65,7 @@ private:
 	bool checkValidPlay(int position, int cardToPlay); // Used in playCard
     bool addCardToPlydCrds(int round, int position, std::string card);
     bool removeCardFromPlydCrds(int round, int position);
-    bool restoreCardToPlyrHand(int plyrPosition, std::string card);
+    bool restoreCardToPlyrHand(int plyrPosition);
     bool removeCardFromPlyrHand(int plyrPosition, std::string card);
     void updateNextToAct();
     void reverseNextToAct();
