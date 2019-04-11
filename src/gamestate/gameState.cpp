@@ -498,3 +498,9 @@ int GameState::findTrickWinner(int trickNum){
 
     return currWinningPosition;
 }
+
+void GameState::clearPlyrHand(int plyr){
+    for (int i = 0; i < numCardsRemaining; i++){
+        plyrHands[plyr][i] = nullptr;
+    }
+}

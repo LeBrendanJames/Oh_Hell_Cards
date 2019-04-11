@@ -44,6 +44,7 @@ public:
 	bool calcFinalScores();
 	bool allHandsGenerated();
 	void reversePlay();
+	void clearPlyrHand(int plyr);
 
 private:
     int numPlyrs;
