@@ -260,9 +260,23 @@ bool DecisionPoint::isValidSuit(Card * card, bool * validSuits){
 }
 
 
+Card* DecisionPoint::makePlay() {
+    if (!gmSt->allHandsGenerated()){
+        bool handsGenerated = genOpponentHands();
+        if (!handsGenerated){
+            return nullptr;
+        }
+    }
+    //if (gmSt->getNextToAct() == gmSt->getHeroPosition()) {
+        randomizeHandOrder();
+    //}
+    Card* cardPlayed = makePlayRecurse();
+
+    return cardPlayed;
+}
 // TODO: cut out early if score can't ever get above maxScore
 // (i.e. won more tricks than you bid and already found an option where you get the bonus)
-Card* DecisionPoint::makePlay(){
+Card* DecisionPoint::makePlayRecurse(){
     std::vector<int> tempScores;
     tempScores.reserve(gmSt->getNumPlyrs());
     for (int i = 0; i < gmSt->getNumPlyrs(); i++){
@@ -275,16 +289,20 @@ Card* DecisionPoint::makePlay(){
         scores[i] = -1;
     }
 
-	if (!gmSt->allHandsGenerated()){
-	    bool handsGenerated = genOpponentHands();
-	    if (!handsGenerated){
-	        return nullptr;
-	    }
-	}
+	//if (!gmSt->allHandsGenerated()){
+	//    bool handsGenerated = genOpponentHands();
+	//    if (!handsGenerated){
+	//        return nullptr;
+	//    }
+	//}
 
     cardPlayed = new Card(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), rand() % gmSt->getCardsRemaining())->getCardStr());
 
 	// Loop through all potential cards available
+    //int i = 0, remaining = gmSt->getCardsRemaining();
+    //while (remaining > 0){
+    //    i = rand() % remaining;
+    //    remaining--;
     for (int i = 0; i < gmSt->getCardsRemaining(); i++){
 
 		Card * tempCardPlayed = new Card(*(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), i)));
@@ -298,7 +316,7 @@ Card* DecisionPoint::makePlay(){
                     tempScores[j] = scores[j];
                 }
 
-                makePlay();
+                makePlayRecurse();
 
                 if (scores[currPosition] > tempScores[currPosition]) {
                     // Update cardPlayed & scores array
@@ -359,6 +377,12 @@ Card* DecisionPoint::makePlay(){
                     gmSt->reversePlay();
                 }
 			}
+
+			if (scores[currPosition] > BID_CORRECT_BONUS){
+		        delete tempCardPlayed;
+		        tempCardPlayed = nullptr;
+		        break;
+		    }
 		}
 
 		delete tempCardPlayed;
@@ -366,4 +390,29 @@ Card* DecisionPoint::makePlay(){
 	}
 
     return cardPlayed;
+}
+
+
+void DecisionPoint::randomizeHandOrder(){
+    Card * tempCardPtrs[gmSt->getCardsRemaining()] {nullptr};
+    int randCardChoice, cardsInHand;
+    int i = gmSt->getHeroPosition();
+    for (int i = 0; i < gmSt->getNumPlyrs(); i++){
+        cardsInHand = 0;
+        for (int j = 0; j < gmSt->getCardsRemaining(); j++){
+            tempCardPtrs[j] = gmSt->getCardFromPlyrHands(i, j);
+            if (tempCardPtrs[j] != nullptr){
+                cardsInHand++;
+            }
+        }
+        gmSt->clearPlyrHand(i);
+
+        for (int j = cardsInHand; j > 0; j--){
+            randCardChoice = rand() % j;
+            bool success = gmSt->addCardToPlyrHand(i, tempCardPtrs[randCardChoice]->getCardStr());
+            for (int k = randCardChoice; k < gmSt->getCardsRemaining() - 1; k++){
+                tempCardPtrs[k] = tempCardPtrs[k+1];
+            }
+        }
+    }
 }

@@ -202,6 +202,7 @@ int main(){
     delete game;
     game = nullptr;
 
+    std::cout << std::endl;
     std::cout << "SUMMARY:" << std::endl;
     std::cout << "---------------------" << std::endl;
     std::cout << "Tests Passed: " << testsPassed << ", Tests Failed: " << testsFailed << std::endl;

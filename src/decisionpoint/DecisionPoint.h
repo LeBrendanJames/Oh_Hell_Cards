@@ -28,6 +28,8 @@ private:
 	void markInvalidSuits(int position, bool * validSuits);
 	bool isValidSuit(Card * card, bool * validSuits);
 	void addRandomHand(GameState * indivGmSt, int position);
+	void randomizeHandOrder();
+	Card* makePlayRecurse();
 };
 
 #endif //CARDS_DECISIONPOINT_H
