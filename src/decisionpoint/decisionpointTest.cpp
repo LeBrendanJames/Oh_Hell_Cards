@@ -147,7 +147,8 @@ int main(){
     std::cout << "Testing makeBid() recommendation:" << std::endl;
 
     game = new GameState(4, 0, 2, flippedCard, heroHand);
-    int optimalBid = runBidSims(100, game);
+    dPoint = new DecisionPoint(game);
+    int optimalBid = dPoint->makeBid(); //runBidSims(100, game);
     if (optimalBid == 2){
         std::cout << "TEST: Optimal Bid with Ah/2h (trump Hearts) == 2 - PASSED" << std::endl;
         testsPassed++;
@@ -155,8 +156,8 @@ int main(){
         std::cout << "TEST: Optimal Bid with Ah/2h (trump Hearts) == 2 - FAILED" << std::endl;
         testsFailed++;
     }
-    //delete dPoint;
-    //dPoint = nullptr;
+    delete dPoint;
+    dPoint = nullptr;
     delete game;
     game = nullptr;
 
@@ -165,11 +166,11 @@ int main(){
     game = new GameState(3, 1, 2, flippedCard, heroHand);
     game->makeBid(0);
     //std::cout << "First player made bid of 0. Next to act = " << game->getNextToAct() << std::endl;
-    //dPoint = new DecisionPoint(game);
+    dPoint = new DecisionPoint(game);
     //dPoint->genOpponentHands();
     //optimalBid = 0;
-    //optimalBid = dPoint->makeBid();
-    optimalBid = runBidSims(50, game);
+    optimalBid = dPoint->makeBid();
+    //optimalBid = runBidSims(50, game);
     if (optimalBid == 2){
         std::cout << "TEST: Optimal Bid from 2nd pos with Ah/2h (trump Hearts) == 2 - PASSED" << std::endl;
         testsPassed++;
@@ -177,19 +178,19 @@ int main(){
         std::cout << "TEST: Optimal Bid from 2nd pos with Ah/2h (trump Hearts) == 2 - FAILED" << std::endl;
         testsFailed++;
     }
-    //delete dPoint;
-    //dPoint = nullptr;
+    delete dPoint;
+    dPoint = nullptr;
     delete game;
     game = nullptr;
 
     game = new GameState(3, 2, 2, flippedCard, heroHand);
     game->makeBid(0);
     game->makeBid(0);
-    //dPoint = new DecisionPoint(game);
+    dPoint = new DecisionPoint(game);
     //dPoint->genOpponentHands();
     //optimalBid = 0;
-    //optimalBid = dPoint->makeBid();
-    optimalBid = runBidSims(50, game);
+    optimalBid = dPoint->makeBid();
+    //optimalBid = runBidSims(50, game);
     if (optimalBid == 2){
         std::cout << "TEST: Optimal Bid from 3rd pos with Ah/2h (trump Hearts) == 2 - PASSED" << std::endl;
         testsPassed++;

@@ -25,7 +25,60 @@ int DecisionPoint::getScore(int index){
 }
 
 
-int DecisionPoint::makeBid(){
+int DecisionPoint::makeBid() {
+    int optimalBidCount[gmSt->getTotalCards() + 1] {0};
+    int addlRuns = 0;
+
+    for (int i = 0; i < DEFAULT_BID_SIMULATIONS; i++){
+        optimalBidCount[findBestBid()]++;
+    }
+    
+    while (!statSignificantResult(optimalBidCount)){
+        for (int i = 0; i < 5; i++) {
+            optimalBidCount[findBestBid()]++;
+            addlRuns++;
+        }
+    }
+
+    return std::distance(optimalBidCount, std::max_element(optimalBidCount, optimalBidCount + gmSt->getTotalCards() + 1));
+}
+
+bool DecisionPoint::statSignificantResult(int * optimalBidCount){
+    // Find largest element and toptwo elements
+    int largest = *(std::max_element(optimalBidCount, optimalBidCount + gmSt->getTotalCards() + 1));
+    int topTwo = largest + findSecondLargest(optimalBidCount);
+
+    // No math behind this, just seems like a reasonable threshold that scales down as you do more runs
+    if ((largest / topTwo) >= (100 - topTwo)/100){
+        return true;
+    }
+
+    return false;
+}
+
+int DecisionPoint::findSecondLargest(int * optimalBidCount){
+    int largestIdx, secondIdx;
+    if (optimalBidCount[0] > optimalBidCount[1]){
+        largestIdx = 0;
+        secondIdx = 1;
+    } else {
+        largestIdx = 1;
+        secondIdx = 0;
+    }
+
+    for (int i = 2; i < gmSt->getTotalCards() + 1; i++){
+        if (optimalBidCount[i] > optimalBidCount[largestIdx]){
+            secondIdx = largestIdx;
+            largestIdx = i;
+        } else if (optimalBidCount[i] > optimalBidCount[secondIdx] && i != largestIdx){
+            secondIdx = i;
+        }
+    }
+
+    return optimalBidCount[secondIdx];
+}
+
+int DecisionPoint::findBestBid(){
 	int optimalBid = -1;
 
     if (!gmSt->allHandsGenerated()) {
@@ -49,7 +102,7 @@ int DecisionPoint::makeBid(){
             // so that it is simulating from the next player to act
 			newDPoint = new DecisionPoint(newGmSt);
 
-			newDPoint->makeBid();
+			newDPoint->findBestBid();
 			
 		} else {
 			// make newDecisionPoint with copied gameState 
@@ -139,7 +192,7 @@ bool DecisionPoint::genOpponentHands(){
 
                 // Make a decisionPoint with that and check that the bid from that player would be correct
                 newDPoint = new DecisionPoint(indivGmSt);
-                int bidDiff = abs(newDPoint->makeBid() - masterGmSt->getBid(i));
+                int bidDiff = abs(newDPoint->findBestBid() - masterGmSt->getBid(i));
 
                 if (bidDiff == 0){
                     handGenerated = true;
@@ -267,9 +320,7 @@ Card* DecisionPoint::makePlay() {
             return nullptr;
         }
     }
-    //if (gmSt->getNextToAct() == gmSt->getHeroPosition()) {
-        randomizeHandOrder();
-    //}
+    randomizeHandOrder();
     Card* cardPlayed = makePlayRecurse();
 
     return cardPlayed;
@@ -289,20 +340,9 @@ Card* DecisionPoint::makePlayRecurse(){
         scores[i] = -1;
     }
 
-	//if (!gmSt->allHandsGenerated()){
-	//    bool handsGenerated = genOpponentHands();
-	//    if (!handsGenerated){
-	//        return nullptr;
-	//    }
-	//}
-
     cardPlayed = new Card(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), rand() % gmSt->getCardsRemaining())->getCardStr());
 
 	// Loop through all potential cards available
-    //int i = 0, remaining = gmSt->getCardsRemaining();
-    //while (remaining > 0){
-    //    i = rand() % remaining;
-    //    remaining--;
     for (int i = 0; i < gmSt->getCardsRemaining(); i++){
 
 		Card * tempCardPlayed = new Card(*(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), i)));
