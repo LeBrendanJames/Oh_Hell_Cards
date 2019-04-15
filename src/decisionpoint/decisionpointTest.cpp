@@ -4,10 +4,6 @@
 #include "../gamestate/GameState.h"
 #include "DecisionPoint.h"
 
-// Function Prototypes
-int runPlaySims(int numSims, GameState * gmSt);
-//int runBidSims(int numSims, GameState * gmSt);
-
 int main(){
     int testsPassed = 0, testsFailed = 0;
 
@@ -226,74 +222,3 @@ int main(){
 
     return 0;
 }
-
-
-
-int runPlaySims(int numSims, GameState * gmSt){
-    //std::cout << "In runPlaySims" << std::endl;
-    Card * playRec = nullptr;
-    DecisionPoint * dPoint = nullptr;
-    int scoreCounter[gmSt->getCardsRemaining()] {0};
-    for (int i = 0; i < numSims; i++){
-        //std::cout << "In runPlaySims function main loop" << std::endl;
-        dPoint = new DecisionPoint(gmSt);
-        //dPoint->genOpponentHands();
-        //std::cout << "Through genOpponentHands" << std::endl;
-        playRec = dPoint->makePlay();
-        //std::cout << "Through makePlay. playRec = " << playRec->getCardStr() << std::endl;
-        for (int j = 0; j < gmSt->getCardsRemaining(); j++){
-            if (*playRec == *(gmSt->getCardFromPlyrHands(gmSt->getHeroPosition(), j))){
-                scoreCounter[j]++;
-            }
-        }
-
-        delete dPoint;
-        dPoint = nullptr;
-        playRec = nullptr;
-
-        //std::cout << "Through one simulation loop, going back to top" << std::endl;
-    }
-
-    std::cout << "Done with sims. Reommendations:" << std::endl;
-    std::cout << "2h: " << scoreCounter[0] << std::endl;
-    std::cout << "Ah: " << scoreCounter[1] << std::endl;
-
-    int maxScoreCounter = 0;
-    for (int i = 1; i < gmSt->getCardsRemaining(); i++){
-        if (scoreCounter[i] > scoreCounter[maxScoreCounter]){
-            maxScoreCounter = i;
-        }
-    }
-
-    return maxScoreCounter;
-}
-
-/*
-int runBidSims(int numSims, GameState * gmSt){
-    DecisionPoint * dPoint = nullptr;
-    int scoreCounter[gmSt->getCardsRemaining() + 1] {0};
-    for (int i = 0; i < numSims; i++){
-        //std::cout << "********NEXT SIM************" << std::endl;
-        dPoint = new DecisionPoint(gmSt);
-
-        // Add 1 to index array of whatever bid is recommended
-        scoreCounter[dPoint->makeBid()]++;
-
-        delete dPoint;
-        dPoint = nullptr;
-    }
-
-    for (int i = 0; i < gmSt->getCardsRemaining() + 1; i++){
-        std::cout << "Bid " << i << ": " << scoreCounter[i] << std::endl;
-    }
-
-    int maxScoreCounter = 0;
-    for (int i = 1; i <= gmSt->getCardsRemaining(); i++){
-        if (scoreCounter[i] > scoreCounter[maxScoreCounter]){
-            maxScoreCounter = i;
-        }
-    }
-
-    return maxScoreCounter;
-}
- */

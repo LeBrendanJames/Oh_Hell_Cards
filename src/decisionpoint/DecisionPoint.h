@@ -12,7 +12,6 @@
 
 const int DEFAULT_BID_SIMULATIONS = 10;
 const int DEFAULT_PLAY_SIMULATIONS = 10;
-//const double PLAY_CONFIDENCE = 0.1;
 
 class DecisionPoint{
 public:
@@ -20,12 +19,10 @@ public:
 	~DecisionPoint();
 
 	int getScore(int index);
+    bool isTie();
 
 	int recommendBid();
-	bool genOpponentHands();
 	Card* recommendPlay();
-	Card* makePlay();
-	bool isTie();
 
 private:
 	int position;
@@ -33,16 +30,19 @@ private:
 	GameState * gmSt;
 	bool tie;
 
-	bool statSignificantResult(int * optimalBidCount);
+    bool genOpponentHands();
+    void simulateBid(int bid, int* simulationScores);
+    void replaceScores(int * simulationScores);
+	bool statSignificantBid(int * optimalBidCount);
     bool statSignificantPlay(int * optimalPlayCount);
 	int findSecondLargest(int * optimalBidCount);
     int findSecondLargestPlay(int * optimalPlayCount);
 	int findBestBid();
+    Card* findBestPlay();
 	void markInvalidSuits(int position, bool * validSuits);
 	bool isValidSuit(Card * card, bool * validSuits);
 	void addRandomHand(GameState * indivGmSt, int position);
-	void randomizeHandOrder();
-	Card* makePlayRecurse();
+	Card* makePlay();
 };
 
 #endif //CARDS_DECISIONPOINT_H
