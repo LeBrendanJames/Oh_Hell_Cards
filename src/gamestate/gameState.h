@@ -45,6 +45,7 @@ public:
 	bool allHandsGenerated();
 	void reversePlay();
 	void clearPlyrHand(int plyr);
+	bool isLastTrick();
 
 private:
     int numPlyrs;

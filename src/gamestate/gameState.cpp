@@ -504,3 +504,7 @@ void GameState::clearPlyrHand(int plyr){
         plyrHands[plyr][i] = nullptr;
     }
 }
+
+bool GameState::isLastTrick() {
+    return roundLead[totalCards - 1] != -1;
+}
