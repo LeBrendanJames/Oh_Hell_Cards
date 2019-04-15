@@ -11,6 +11,7 @@
 #include "../card/Card.h"
 
 const int DEFAULT_BID_SIMULATIONS = 10;
+const int DEFAULT_PLAY_SIMULATIONS = 10;
 //const double PLAY_CONFIDENCE = 0.1;
 
 class DecisionPoint{
@@ -20,17 +21,22 @@ public:
 
 	int getScore(int index);
 
-	int makeBid();
+	int recommendBid();
 	bool genOpponentHands();
+	Card* recommendPlay();
 	Card* makePlay();
+	bool isTie();
 
 private:
 	int position;
 	std::vector<int> scores;
 	GameState * gmSt;
+	bool tie;
 
-	bool statSignificantResult(int * optimalbidCount);
+	bool statSignificantResult(int * optimalBidCount);
+    bool statSignificantPlay(int * optimalPlayCount);
 	int findSecondLargest(int * optimalBidCount);
+    int findSecondLargestPlay(int * optimalPlayCount);
 	int findBestBid();
 	void markInvalidSuits(int position, bool * validSuits);
 	bool isValidSuit(Card * card, bool * validSuits);

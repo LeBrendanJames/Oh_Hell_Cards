@@ -10,6 +10,8 @@ DecisionPoint::DecisionPoint(GameState *currGmSt){
 	}
 
 	gmSt = new GameState(*currGmSt); // Gamestate copied when decisionPoint constructed
+
+    tie = false;
 }
 
 DecisionPoint::~DecisionPoint(){
@@ -25,20 +27,36 @@ int DecisionPoint::getScore(int index){
 }
 
 
-int DecisionPoint::makeBid() {
+int DecisionPoint::recommendBid() {
     int optimalBidCount[gmSt->getTotalCards() + 1] {0};
     int addlRuns = 0;
+    int tempBid = -1;
+    DecisionPoint * newDPoint = nullptr;
 
     for (int i = 0; i < DEFAULT_BID_SIMULATIONS; i++){
-        optimalBidCount[findBestBid()]++;
+        newDPoint = new DecisionPoint(gmSt);
+        tempBid = newDPoint->findBestBid();
+        //std::cout << "tempBid: " << tempBid << std::endl;
+        optimalBidCount[tempBid]++;
+        delete newDPoint;
+        //optimalBidCount[findBestBid()]++;
     }
-    
+
     while (!statSignificantResult(optimalBidCount)){
         for (int i = 0; i < 5; i++) {
-            optimalBidCount[findBestBid()]++;
+            newDPoint = new DecisionPoint(gmSt);
+            tempBid = newDPoint->findBestBid();
+            //std::cout << "tempBid: " << tempBid << std::endl;
+            optimalBidCount[tempBid]++;
+            delete newDPoint;
+            //optimalBidCount[findBestBid()]++;
             addlRuns++;
         }
     }
+
+    //for (int i = 0; i < gmSt->getTotalCards() + 1; i++){
+    //    std::cout << "Bid " << i << " count: " << optimalBidCount[i] << std::endl;
+    //}
 
     return std::distance(optimalBidCount, std::max_element(optimalBidCount, optimalBidCount + gmSt->getTotalCards() + 1));
 }
@@ -49,7 +67,9 @@ bool DecisionPoint::statSignificantResult(int * optimalBidCount){
     int topTwo = largest + findSecondLargest(optimalBidCount);
 
     // No math behind this, just seems like a reasonable threshold that scales down as you do more runs
-    if ((largest / topTwo) >= (100 - topTwo)/100){
+    //std::cout << "largest / topTwo: " << largest / static_cast<double>(topTwo) << std::endl;
+    //std::cout << "threshold: " << ((100 - topTwo)/100.0 + 1) / 2.0 << std::endl;
+    if ((largest / static_cast<double>(topTwo)) >= ((100 - topTwo)/100.0 + 1) / 2.0){
         return true;
     }
 
@@ -312,6 +332,95 @@ bool DecisionPoint::isValidSuit(Card * card, bool * validSuits){
 	return true;
 }
 
+Card* DecisionPoint::recommendPlay(){
+    int optimalPlayCount[gmSt->getCardsRemaining()] {0};
+    int runCount = 0, addlRuns = 0;
+    Card * optimalCard = nullptr;
+    int simCount = 0;
+    DecisionPoint * newDPoint = nullptr;
+
+    while (runCount < DEFAULT_PLAY_SIMULATIONS && (runCount <= 2 || (runCount > 0 && runCount * 5 > simCount))){
+    //for (int i = 0; i < DEFAULT_PLAY_SIMULATIONS; i++){
+        newDPoint = new DecisionPoint(gmSt);
+        simCount++;
+        optimalCard = newDPoint->makePlay();
+        if (!newDPoint->isTie()) {
+            runCount++;
+            for (int j = 0; j < gmSt->getCardsRemaining(); j++) {
+                if (*optimalCard == *(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), j))) {
+                    optimalPlayCount[j]++;
+                    break;
+                }
+            }
+        }
+        delete newDPoint;
+        optimalCard = nullptr;
+    }
+
+    while (!statSignificantPlay(optimalPlayCount)){
+        while (addlRuns < 5){
+            newDPoint = new DecisionPoint(gmSt);
+            simCount++;
+            optimalCard = newDPoint->makePlay();
+            if (!newDPoint->isTie()) { // If not tie, record optimal card
+                addlRuns++;
+                for (int j = 0; j < gmSt->getCardsRemaining(); j++) {
+                    if (*optimalCard == *(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), j))) {
+                        optimalPlayCount[j]++;
+                        break;
+                    }
+                }
+            }
+            delete newDPoint;
+            optimalCard = nullptr;
+        }
+        addlRuns = 0;
+    }
+
+    return gmSt->getCardFromPlyrHands(gmSt->getNextToAct(),
+                                      std::distance(optimalPlayCount,
+                                                    std::max_element(optimalPlayCount,
+                                                                     optimalPlayCount + gmSt->getCardsRemaining())));
+}
+
+bool DecisionPoint::statSignificantPlay(int * optimalPlayCount){
+    // Find largest element and toptwo elements
+    int largest = *(std::max_element(optimalPlayCount, optimalPlayCount + gmSt->getCardsRemaining()));
+    int topTwo = largest + findSecondLargestPlay(optimalPlayCount);
+
+    if (topTwo <= 0){
+        return false;
+    }
+
+    // No formal math behind this, just seems like a reasonable threshold that scales down as you do more runs
+    if ((largest / static_cast<double>(topTwo)) >= ((100 - topTwo)/100.0) - (topTwo/400.0)){
+        return true;
+    }
+
+    return false;
+}
+
+int DecisionPoint::findSecondLargestPlay(int * optimalPlayCount){
+    int largestIdx, secondIdx;
+    if (optimalPlayCount[0] > optimalPlayCount[1]){
+        largestIdx = 0;
+        secondIdx = 1;
+    } else {
+        largestIdx = 1;
+        secondIdx = 0;
+    }
+
+    for (int i = 2; i < gmSt->getCardsRemaining(); i++){
+        if (optimalPlayCount[i] > optimalPlayCount[largestIdx]){
+            secondIdx = largestIdx;
+            largestIdx = i;
+        } else if (optimalPlayCount[i] > optimalPlayCount[secondIdx] && i != largestIdx){
+            secondIdx = i;
+        }
+    }
+
+    return optimalPlayCount[secondIdx];
+}
 
 Card* DecisionPoint::makePlay() {
     if (!gmSt->allHandsGenerated()){
@@ -320,11 +429,15 @@ Card* DecisionPoint::makePlay() {
             return nullptr;
         }
     }
-    randomizeHandOrder();
+    //randomizeHandOrder();
+
+
     Card* cardPlayed = makePlayRecurse();
 
+    //std::cout << "Returning " << cardPlayed->getCardStr() << " from makePlay" << std::endl;
     return cardPlayed;
 }
+
 // TODO: cut out early if score can't ever get above maxScore
 // (i.e. won more tricks than you bid and already found an option where you get the bonus)
 Card* DecisionPoint::makePlayRecurse(){
@@ -358,6 +471,8 @@ Card* DecisionPoint::makePlayRecurse(){
 
                 makePlayRecurse();
 
+                tie = false;
+
                 if (scores[currPosition] > tempScores[currPosition]) {
                     // Update cardPlayed & scores array
                     if (cardPlayed != nullptr) {
@@ -375,6 +490,7 @@ Card* DecisionPoint::makePlayRecurse(){
                     // card is played
                     // Otherwise, by choosing one over the other every time it seems to higher up
                     // function that the one card is in fact better than the other
+                    tie = true;
 				    int random = rand() % 2;
 				    if (random == 1){
                         // Update cardPlayed & scores array
@@ -418,11 +534,11 @@ Card* DecisionPoint::makePlayRecurse(){
                 }
 			}
 
-			if (scores[currPosition] > BID_CORRECT_BONUS){
-		        delete tempCardPlayed;
-		        tempCardPlayed = nullptr;
-		        break;
-		    }
+			//if (scores[currPosition] > BID_CORRECT_BONUS){
+		    //    delete tempCardPlayed;
+		    //    tempCardPlayed = nullptr;
+		    //    break;
+		    //}
 		}
 
 		delete tempCardPlayed;
@@ -455,4 +571,8 @@ void DecisionPoint::randomizeHandOrder(){
             }
         }
     }
+}
+
+bool DecisionPoint::isTie() {
+    return tie;
 }
