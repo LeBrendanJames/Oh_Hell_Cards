@@ -37,7 +37,8 @@ int DecisionPoint::recommendBid() {
     int tempBid = -1;
     DecisionPoint * newDPoint = nullptr;
 
-    while (totalRuns < DEFAULT_BID_SIMULATIONS || !statSignificantBid(optimalBidCount)){
+    while (totalRuns < DEFAULT_BID_SIMULATIONS ||
+           !statSignificantResult(optimalBidCount, gmSt->getTotalCards() + 1)){
         for (int i = 0; i < runChunk; i++) {
             newDPoint = new DecisionPoint(gmSt);
 
@@ -55,10 +56,10 @@ int DecisionPoint::recommendBid() {
 
 // Check if most common bid result happens more often than the second most common
 // bid result to a statistically significant degree
-bool DecisionPoint::statSignificantBid(int * optimalBidCount){
+bool DecisionPoint::statSignificantResult(int * optimalBidCount, int size){
     // Find largest element and toptwo elements
-    int largest = *(std::max_element(optimalBidCount, optimalBidCount + gmSt->getTotalCards() + 1));
-    int topTwo = largest + findSecondLargest(optimalBidCount);
+    int largest = *(std::max_element(optimalBidCount, optimalBidCount + size));
+    int topTwo = largest + secondLargestElement(optimalBidCount, size);
 
     // No formal math behind this,
     // just seems like a reasonable threshold that scales down as you do more runs
@@ -70,12 +71,14 @@ bool DecisionPoint::statSignificantBid(int * optimalBidCount){
 }
 
 // Find second largest value in array and return its value
-int DecisionPoint::findSecondLargest(int * optimalBidCount){
+int DecisionPoint::secondLargestElement(int * optimalCountArr, int size){
     int largestIdx, secondIdx;
 
-    // optimalBidCount always at least size of 2, so no error checking on size needed
+    if (size < 2){
+        return 0;
+    }
 
-    if (optimalBidCount[0] > optimalBidCount[1]){
+    if (optimalCountArr[0] > optimalCountArr[1]){
         largestIdx = 0;
         secondIdx = 1;
     } else {
@@ -83,16 +86,16 @@ int DecisionPoint::findSecondLargest(int * optimalBidCount){
         secondIdx = 0;
     }
 
-    for (int i = 2; i < gmSt->getTotalCards() + 1; i++){
-        if (optimalBidCount[i] > optimalBidCount[largestIdx]){
+    for (int i = 2; i < size; i++){
+        if (optimalCountArr[i] > optimalCountArr[largestIdx]){
             secondIdx = largestIdx;
             largestIdx = i;
-        } else if (optimalBidCount[i] > optimalBidCount[secondIdx] && i != largestIdx){
+        } else if (optimalCountArr[i] > optimalCountArr[secondIdx] && i != largestIdx){
             secondIdx = i;
         }
     }
 
-    return optimalBidCount[secondIdx];
+    return optimalCountArr[secondIdx];
 }
 
 int DecisionPoint::findBestBid(){
@@ -334,46 +337,24 @@ bool DecisionPoint::isValidSuit(Card * card, bool * validSuits){
 
 Card* DecisionPoint::recommendPlay(){
     int optimalPlayCount[gmSt->getCardsRemaining()] {0};
-    int runCount = 0, addlRuns = 0;
+    int runCount = 0, simCount = 0;
     Card * optimalCard = nullptr;
-    int simCount = 0;
     DecisionPoint * newDPoint = nullptr;
 
+    // Keep running if
+    // 1. runCount < default
+    // 2. runCount > 2 and is accruing fast enough
+        // runCount * 5 being less than simCount would mean there's a lot of ties
+        // so I should just go with whatever is winning every onece in a while
     while (runCount < DEFAULT_PLAY_SIMULATIONS && (runCount <= 2 || (runCount > 0 && runCount * 5 > simCount))){
-        newDPoint = new DecisionPoint(gmSt);
-        simCount++;
-        optimalCard = newDPoint->findBestPlay();
-        if (!newDPoint->isTie()) { // If there wasn't a tie for best play
-            runCount++;
-            for (int j = 0; j < gmSt->getCardsRemaining(); j++) {
-                if (*optimalCard == *(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), j))) {
-                    optimalPlayCount[j]++;
-                    break;
-                }
-            }
-        }
-        delete newDPoint;
-        optimalCard = nullptr;
+        runPlaySim(optimalPlayCount, runCount, simCount);
     }
 
-    while (!statSignificantPlay(optimalPlayCount)){
-        while (addlRuns < 5){
-            newDPoint = new DecisionPoint(gmSt);
-            simCount++;
-            optimalCard = newDPoint->findBestPlay();
-            if (!newDPoint->isTie()) { // If not tie, record optimal card
-                addlRuns++;
-                for (int j = 0; j < gmSt->getCardsRemaining(); j++) {
-                    if (*optimalCard == *(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), j))) {
-                        optimalPlayCount[j]++;
-                        break;
-                    }
-                }
-            }
-            delete newDPoint;
-            optimalCard = nullptr;
+    while (!statSignificantResult(optimalPlayCount, gmSt->getCardsRemaining())){
+        runCount = 0;
+        while (runCount < 5){
+            runPlaySim(optimalPlayCount, runCount, simCount);
         }
-        addlRuns = 0;
     }
 
     return gmSt->getCardFromPlyrHands(gmSt->getNextToAct(),
@@ -382,49 +363,22 @@ Card* DecisionPoint::recommendPlay(){
                                                                      optimalPlayCount + gmSt->getCardsRemaining())));
 }
 
-bool DecisionPoint::statSignificantPlay(int * optimalPlayCount){
-    // Find largest element and toptwo elements
-    int largest = *(std::max_element(optimalPlayCount, optimalPlayCount + gmSt->getCardsRemaining()));
-    int topTwo = largest + findSecondLargestPlay(optimalPlayCount);
-
-    if (topTwo <= 0){
-        return false;
-    }
-
-    // No formal math behind this, just seems like a reasonable threshold that scales down as you do more runs
-    if ((largest / static_cast<double>(topTwo)) >= ((100 - topTwo)/100.0) - (topTwo/400.0)){
-        return true;
-    }
-
-    return false;
-}
-
-int DecisionPoint::findSecondLargestPlay(int * optimalPlayCount){
-    int largestIdx, secondIdx;
-
-    // If there's only 1 card remaining, then the 2nd largest doesn't exist
-    if (gmSt->getCardsRemaining() < 2){
-        return 0;
-    }
-
-    if (optimalPlayCount[0] > optimalPlayCount[1]){
-        largestIdx = 0;
-        secondIdx = 1;
-    } else {
-        largestIdx = 1;
-        secondIdx = 0;
-    }
-
-    for (int i = 2; i < gmSt->getCardsRemaining(); i++){
-        if (optimalPlayCount[i] > optimalPlayCount[largestIdx]){
-            secondIdx = largestIdx;
-            largestIdx = i;
-        } else if (optimalPlayCount[i] > optimalPlayCount[secondIdx] && i != largestIdx){
-            secondIdx = i;
+void DecisionPoint::runPlaySim(int * optimalPlayCount, int& runCount, int& simCount){
+    DecisionPoint * newDPoint = new DecisionPoint(gmSt);
+    simCount++;
+    Card * optimalCard = newDPoint->findBestPlay();
+    if (!newDPoint->isTie()) { // If there wasn't a tie for best play
+        runCount++;
+        for (int i = 0; i < gmSt->getCardsRemaining(); i++) {
+            if (*optimalCard == *(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), i))) {
+                optimalPlayCount[i]++;
+                break;
+            }
         }
     }
-
-    return optimalPlayCount[secondIdx];
+    delete newDPoint;
+    delete optimalCard;
+    optimalCard = nullptr;
 }
 
 Card* DecisionPoint::findBestPlay() {

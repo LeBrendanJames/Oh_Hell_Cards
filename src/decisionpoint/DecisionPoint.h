@@ -33,10 +33,9 @@ private:
     bool genOpponentHands();
     void simulateBid(int bid, int* simulationScores);
     void replaceScores(int * simulationScores);
-	bool statSignificantBid(int * optimalBidCount);
-    bool statSignificantPlay(int * optimalPlayCount);
-	int findSecondLargest(int * optimalBidCount);
-    int findSecondLargestPlay(int * optimalPlayCount);
+	bool statSignificantResult(int * optimalBidCount, int size);
+	int secondLargestElement(int * optimalCountArr, int size);
+    void runPlaySim(int * optimalPlayCount, int& runCount, int& simCount);
 	int findBestBid();
     Card* findBestPlay();
 	void markInvalidSuits(int position, bool * validSuits);
