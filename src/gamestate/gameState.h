@@ -41,6 +41,7 @@ public:
 	bool makeBid(int bid);
 	bool playCard(int cardPositionInHand);
     bool cardPrevUsed(std::string card);
+    bool cardPrevUsed(int cardVal, int cardSuit);
 	bool calcFinalScores();
 	bool allHandsGenerated();
 	void reversePlay();

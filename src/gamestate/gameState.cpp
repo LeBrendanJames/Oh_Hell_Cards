@@ -355,25 +355,24 @@ bool GameState::removeCardFromPlydCrds(int round, int position){
 
 bool GameState::cardPrevUsed(std::string card){
 	Card cardToCheck(card);
-	bool match = false;
 	
 	// Check if card in plyrHands or plydCrds
     int i = 0, j = 0, k = 0;
-    while (i < numPlyrs && !match){
+    while (i < numPlyrs){
         // Check against cards in player hands
         j = 0;
-        while (j < numCardsRemaining && !match){
+        while (j < numCardsRemaining){
             if (plyrHands[i][j] != nullptr && cardToCheck == *(plyrHands[i][j])) { // Order matters, null check first
-                match = true;
+                return true;
             }
             j++;
         }
 
         // Check against cards in plydCrds
         k = 0;
-        while (k < totalCards && !match){
+        while (k < totalCards){
             if (plydCrds[k][i] != nullptr && cardToCheck == *(plydCrds[k][i])){ // Order matters, null check first
-                match = true;
+                return true;
             }
             k++;
         }
@@ -382,14 +381,50 @@ bool GameState::cardPrevUsed(std::string card){
     }
 	
 	// Check against flipped card
-	if (!match && cardToCheck == *flippedCard){
-		match = true;
+    if (cardToCheck == *flippedCard){
+		return true;
 	}
 
-	return match;
+	return false;
 }
 
+bool GameState::cardPrevUsed(int cardVal, int cardSuit){
+    // Check if card in plyrHands or plydCrds
+    int i = 0, j = 0, k = 0;
+    while (i < numPlyrs){
+        // Check against cards in player hands
+        j = 0;
+        //while (j < totalCards){
+        while (j < numCardsRemaining){
+            if (plyrHands[i][j] != nullptr &&
+                cardVal == plyrHands[i][j]->getVal() &&
+                cardSuit == static_cast<int>(plyrHands[i][j]->getSuit()) + 1){
+                return true;
+            }
+            j++;
+        }
 
+        // Check against cards in plydCrds
+        k = 0;
+        while (k < totalCards){
+            if (plydCrds[k][i] != nullptr &&
+                    cardVal == plydCrds[k][i]->getVal() &&
+                    cardSuit == static_cast<int>(plydCrds[k][i]->getSuit()) + 1){
+                return true;
+            }
+            k++;
+        }
+
+        i++;
+    }
+
+    // Check against flipped card
+    if (cardVal == flippedCard->getVal() && cardSuit == static_cast<int>(flippedCard->getSuit()) + 1){
+        return true;
+    }
+
+    return false;
+}
 
 bool GameState::checkValidPlay(int position, int cardToPlay){
     if (cardToPlay < 0 || cardToPlay >= numCardsRemaining){
