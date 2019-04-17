@@ -39,9 +39,15 @@ private:
 	int findBestBid();
     Card* findBestPlay();
 	void markInvalidSuits(int position, bool * validSuits);
-	bool isValidSuit(Card * card, bool * validSuits);
-	void addRandomHand(GameState * indivGmSt, int position);
+	bool isValidSuit(int cardSuit, bool * validSuits);
+	void addRandomHand(GameState * indivGmSt, GameState * masterGmSt, int position);
 	Card* makePlay();
+	bool cardAlreadyUsed(GameState * gmSt, GameState * indivGmSt, GameState * masterGmSt, int cardVal, int cardSuit);
+    GameState* reconstructGmStFromStart();
+    void copyOpponentHandsToGmSt(GameState * masterGmSt);
+    GameState* setNewRandomHandGmSt(int currPosition, GameState * masterGmSt);
+    void fillPlayerHand(GameState* masterGmSt, int plyrPosition);
+    void addHandToMatchBid(GameState * masterGmSt, int plyrPosition);
 };
 
 #endif //CARDS_DECISIONPOINT_H
