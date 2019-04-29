@@ -7,12 +7,12 @@ Game::Game(int numPlayers, int heroPosition, int totalCards, Card * flippedCard,
     this->gmState = new GameState(numPlayers, heroPosition, totalCards, flippedCard, heroHand);
 }
 
-Game::~Game(){
-    delete gmState;
+Game::Game(GameState * state){
+    this->gmState = new GameState(*state);
 }
 
-void Game::setBid(int position, int bid){
-    this->gmState->setBid(position, bid);
+Game::~Game(){
+    delete gmState;
 }
 
 int Game::getBid(int position){
@@ -20,56 +20,57 @@ int Game::getBid(int position){
 }
 
 void Game::simRound() {
+    int plyrBid;
     std::string cardPlayed;
 
-    while (gmState->getCardsRemaining() > 0){
 
+    while(gmState->getBid(gmState->getNextToAct()) == -1){
         if (gmState->getNextToAct() == gmState->getHeroPosition()){
-            int optimalCardCount[gmState->getCardsRemaining()] {0};
-
-            for (int i = 0; i < NUM_SIMS; i++) {
-                DecisionPoint *dPoint = new DecisionPoint(gmState);
-                Card * playRec = dPoint->makePlay();
-
-                int j = 0;
-                while (playRec->getCardStr() != gmState->getCardFromPlyrHands(gmState->getNextToAct(), j)->getCardStr()){
-                    j++;
-                }
-                optimalCardCount[j]++;
-
-                delete dPoint;
-                dPoint = nullptr;
-            }
-
-            int maxOptimal = 0;
-            for (int i = 1; i < gmState->getCardsRemaining(); i++){
-                if (optimalCardCount[i] > maxOptimal){
-                    maxOptimal = i;
-                }
-            }
-
-            std::cout << "Recommended Play: " << gmState->getCardFromPlyrHands(gmState->getNextToAct(), maxOptimal)->getCardStr();
+            DecisionPoint * dPoint = new DecisionPoint(gmState);
+            int bidRec = dPoint->recommendBid();
             std::cout << std::endl;
+            std::cout << "Recommended bid for hero: " << bidRec << std::endl;
+            std::cout << std::endl;
+            gmState->makeBid(bidRec);
+        } else {
+            std::cout << "What does the player in position " << gmState->getNextToAct() + 1 << " bid?" << std::endl;
+            std::cin >> plyrBid; // TODO: Input validation
+            gmState->makeBid(plyrBid);
+        }
+    }
 
-            // Actually make the play
-            gmState->playCard(maxOptimal);
+    while (gmState->getNextToAct() != -1){
+        if (gmState->getNextToAct() == gmState->getHeroPosition()){
+            DecisionPoint * dPoint = new DecisionPoint(gmState);
+            Card * cardToPlay = dPoint->recommendPlay();
+            std::cout << std::endl;
+            std::cout << "Recommended play for hero: " << cardToPlay->getCardStr() << std::endl;
+            std::cout << std::endl;
+            //delete cardToPlay; // I think the return from recommendPlay is a new card, not a pointer to one in gmState?
+            for (int i = 0; i < gmState->getCardsRemaining(); i++) {
+                if (*(gmState->getCardFromPlyrHands(gmState->getHeroPosition(), i)) == *cardToPlay) {
+                    gmState->playCard(i);
+                    break;
+                }
+            }
 
         } else {
             // Get user input for what player plays & update gameState
             std::cout << "What does the player in position " << gmState->getNextToAct() + 1 << " play?" << std::endl;
             std::cin >> cardPlayed; // TODO: Input validation
-
             gmState->addCardToPlyrHand(gmState->getNextToAct(), cardPlayed);
             gmState->playCard(0);
         }
-
     }
+
+    printResults();
 }
 
 void Game::printResults(){
     std::cout << std::endl;
     std::cout << "GAME RESULTS" << std::endl;
     std::cout << "------------" << std::endl;
+    gmState->calcFinalScores();
     for (int i = 0; i < gmState->getNumPlyrs(); i++) {
         std::cout << "Player " << i + 1;
         if (i == gmState->getHeroPosition()){

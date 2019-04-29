@@ -10,23 +10,19 @@
 #include "../gamestate/GameState.h"
 #include "../decisionpoint/DecisionPoint.h"
 
-const int NUM_SIMS = 1;
-
-
 class Game{
 public:
     Game(int numPlayers, int heroPosition, int totalCards, Card * flippedCard, Card ** heroHand);
+    Game(GameState * state);
     ~Game();
 
-    void setBid(int position, int bid);
     int getBid(int position);
-
     void simRound(); // Follows along with live game and makes recommendations each time it is hero's turn to act
-    void printResults();
 
 private:
     GameState * gmState;
-	
+
+    void printResults();
 };
 
 #endif //CARDS_GAME_H
