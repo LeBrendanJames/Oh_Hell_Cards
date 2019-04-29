@@ -51,8 +51,9 @@ int main(){
         delete dPoint;
         delete state;
     } else if (choice == 2){
-        std::cout << "Choice 2 currently under construction. Check back later." << std::endl;
-        std::cout << std::endl;
+        state = buildCurrGmStFromUser();
+        Game * game = new Game(state);
+        game->simRound();
     }
 	
 	return 0;
