@@ -147,13 +147,13 @@ void collectPlayedCardsFromUser(GameState * state){
         } while (trickPlayed == "Y");
     }
 
-    if (state->getHeroPosition() != 0) {
+    if (state->getNextToAct() != state->getHeroPosition()) {
         std::cout << "We will now collect the plays that have been made in front of hero for this trick:"
                   << std::endl;
-        for (int i = 0; i < state->getHeroPosition(); i++) {
-            getCardWithValidation("What did the player in position " +
-                                    std::to_string(i + 1) + " play?", inputPlay);
-            state->addCardToPlyrHand(i, inputPlay);
+        while (state->getNextToAct() != state->getHeroPosition()){
+            getCardWithValidation("What did the player in position " + std::to_string(state->getNextToAct()) +
+                                  " play?", inputPlay);
+            state->addCardToPlyrHand(state->getNextToAct(), inputPlay);
             state->playCard(0);
         }
     }
