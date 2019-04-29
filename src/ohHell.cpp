@@ -133,14 +133,29 @@ void collectPlayedCardsFromUser(GameState * state){
                     state->addCardToPlyrHand(state->getNextToAct(), inputPlay);
                     state->playCard(0);
                 } else {
-                    getCardWithValidation("What card did hero play?", inputPlay);
-                    // TODO: confirm card entered is in hero's hand
-                    for (int j = 0; j < state->getCardsRemaining(); j++) {
-                        if (state->getCardFromPlyrHands(state->getNextToAct(), j)->getCardStr() == inputPlay) {
-                            state->playCard(j);
-                            break;
+                    bool match = false;
+                    do {
+                        getCardWithValidation("What card did hero play?", inputPlay);
+                        for (int j = 0; j < state->getCardsRemaining(); j++) {
+                            if (state->getCardFromPlyrHands(state->getNextToAct(), j)->getCardStr() == inputPlay) {
+                                state->playCard(j);
+                                match = true;
+                                break;
+                            }
                         }
-                    }
+                        if (!match){
+                            std::cout << "That card doesn't match one in the player's hand." << std::endl;
+                            std::cout << "The cards available are: ";
+                            for (int j = 0; j < state->getCardsRemaining(); j++){
+                                std::cout << state->getCardFromPlyrHands(state->getHeroPosition(), j)->getCardStr();
+                                if (j != state->getCardsRemaining() - 1) {
+                                    std::cout << ", ";
+                                } else {
+                                    std::cout << std::endl;
+                                }
+                            }
+                        }
+                    } while (!match);
                 }
             }
             getYNCharWithValidation("Has another full trick been played (Y/N)?", trickPlayed);
@@ -161,7 +176,7 @@ void collectPlayedCardsFromUser(GameState * state){
 
 
 /************************************************************************************************************
- *  INPUT VALIDATION
+ *  INPUT VALIDATION HELPER FUNCTIONS
  ***********************************************************************************************************/
 
 void getIntWithValidation(std::string question, int& inputPlace, int low, int high){
