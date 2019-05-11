@@ -16,6 +16,7 @@ int main(){
     std::cout << "DECISIONPOINT CLASS TESTS" << std::endl;
     std::cout << "-------------------------------------" << std::endl;
 
+
     // Semi-complete game
     Card * flippedCard = new Card("3h");
     Card ** heroHand = new Card*[2];
@@ -43,6 +44,60 @@ int main(){
     delete heroHand[0];
     delete heroHand[1];
     delete heroHand;
+
+
+
+    // Hero cards in different order
+    flippedCard = new Card("3h");
+    heroHand = new Card*[2];
+    heroHand[0] = new Card("2h");
+    heroHand[1] = new Card("Ah");
+    game = new GameState(4, 1, 2, flippedCard, heroHand);
+    game->makeBid(0);
+    game->addCardToPlyrHand(0, "Td");
+    game->addCardToPlyrHand(0, "8c");
+    game->addCardToPlyrHand(2, "Th");
+    game->addCardToPlyrHand(2, "Ts");
+    game->addCardToPlyrHand(3, "Jh");
+    game->addCardToPlyrHand(3, "Ad");
+    dPoint = new DecisionPoint(game);
+    if (dPoint->recommendBid() == 2){
+        std::cout << "Cards 2h, Ah. Bid Recommendation == 2" << std::endl;
+    } else {
+        std::cout << "Cards 2h, Ah. Bid recommendation == 1" << std::endl;
+    }
+    delete game;
+    delete dPoint;
+    delete flippedCard;
+    delete heroHand[0];
+    delete heroHand[1];
+    delete heroHand;
+
+    flippedCard = new Card("3h");
+    heroHand = new Card*[2];
+    heroHand[0] = new Card("Ah");
+    heroHand[1] = new Card("2h");
+    game = new GameState(4, 1, 2, flippedCard, heroHand);
+    game->makeBid(0);
+    game->addCardToPlyrHand(0, "Td");
+    game->addCardToPlyrHand(0, "8c");
+    game->addCardToPlyrHand(2, "Th");
+    game->addCardToPlyrHand(2, "Ts");
+    game->addCardToPlyrHand(3, "Jh");
+    game->addCardToPlyrHand(3, "Ad");
+    dPoint = new DecisionPoint(game);
+    if (dPoint->recommendBid() == 2){
+        std::cout << "Cards Ah, 2h. Bid Recommendation == 2" << std::endl;
+    } else {
+        std::cout << "Cards Ah, 2h. Bid recommendation == 1" << std::endl;
+    }
+    delete game;
+    delete dPoint;
+    delete flippedCard;
+    delete heroHand[0];
+    delete heroHand[1];
+    delete heroHand;
+
 
 
     flippedCard = new Card("3h");
@@ -218,6 +273,7 @@ int main(){
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
     std::cout << "Total time (seconds): " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << std::endl;
+
 
 
     return 0;

@@ -18,36 +18,45 @@ public:
 	DecisionPoint(GameState * currGmSt);
 	~DecisionPoint();
 
+	// GETTERS
 	int getScore(int index);
     bool isTie();
 
+    // DECISIONPOINT CAN RECOMMEND A BID OR PLAY
 	int recommendBid();
 	Card* recommendPlay();
 
 private:
 	int position;
-	std::vector<int> scores;
+	std::vector<double> scores;
 	GameState * gmSt;
 	bool tie;
 
-    bool genOpponentHands();
+	// Helpers to loop through random games until result is returned
+    bool statSignificantResult(int * optimalBidCount, int size);
+    int secondLargestElement(int * optimalCountArr, int size);
+
+	// Finding best bid to make
+    int findBestBid();
     void simulateBid(int bid, int* simulationScores);
     void replaceScores(int * simulationScores);
-	bool statSignificantResult(int * optimalBidCount, int size);
-	int secondLargestElement(int * optimalCountArr, int size);
+
+    // Finding best play to make
     void runPlaySim(int * optimalPlayCount, int& runCount, int& simCount);
-	int findBestBid();
     Card* findBestPlay();
-	void markInvalidSuits(int position, bool * validSuits);
-	bool isValidSuit(int cardSuit, bool * validSuits);
-	void addRandomHand(GameState * indivGmSt, GameState * masterGmSt, int position);
-	Card* makePlay();
-	bool cardAlreadyUsed(GameState * gmSt, GameState * indivGmSt, GameState * masterGmSt, int cardVal, int cardSuit);
+    Card* makePlay();
+
+    // Generating opponent hands for game simulation purposes
+    bool genOpponentHands();
+    bool cardAlreadyUsed(GameState * gmSt, GameState * indivGmSt, GameState * masterGmSt, int cardVal, int cardSuit);
     GameState* reconstructGmStFromStart();
     void copyOpponentHandsToGmSt(GameState * masterGmSt);
     GameState* setNewRandomHandGmSt(int currPosition, GameState * masterGmSt);
     void fillPlayerHand(GameState* masterGmSt, int plyrPosition);
     void addHandToMatchBid(GameState * masterGmSt, int plyrPosition);
+    void markInvalidSuits(int position, bool * validSuits);
+    bool isValidSuit(int cardSuit, bool * validSuits);
+    void addRandomHand(GameState * indivGmSt, GameState * masterGmSt, int position);
 };
 
 #endif //CARDS_DECISIONPOINT_H

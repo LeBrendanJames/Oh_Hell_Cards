@@ -3,7 +3,7 @@
 DecisionPoint::DecisionPoint(GameState *currGmSt){
 	position = currGmSt->getNextToAct();
 	for (int i = 0; i < currGmSt->getNumPlyrs(); i++){
-		scores.push_back(-1);
+		scores.push_back(-1.0);
 	}
 	gmSt = new GameState(*currGmSt); // Gamestate copied when decisionPoint constructed
     tie = false;
@@ -13,6 +13,15 @@ DecisionPoint::~DecisionPoint(){
 	delete gmSt;
 }
 
+
+/**********************************************************************************************************************
+ * PUBLIC FUNCTIONS
+ *********************************************************************************************************************/
+
+/*
+ * GETSCORE
+ * Getter for score vector (which holds player scores after simulating a full Oh Hell round)
+ */
 int DecisionPoint::getScore(int index){
     if (index >= 0 && index < scores.size()) {
         return scores[index];
@@ -21,13 +30,20 @@ int DecisionPoint::getScore(int index){
     }
 }
 
+/*
+ * ISTIE
+ * Getter to see if the DecisionPoint run resulted in a tie between two different possible card plays
+ * Tie variable set within makePlay function if two playes result in same score at end of round
+ */
 bool DecisionPoint::isTie() {
     return tie;
 }
 
-// Loop for at least DEFAULT_BID_SIMULATIONS number of randomly generated games
-// where we find hero's best bid, then additional loops in chunks of 'runChunk'
-// until oen bid is more common than any other to a statistically sugnificant degree
+/*
+ * Loop for at least DEFAULT_BID_SIMULATIONS number of randomly generated games
+ * where we find hero's best bid, then additional loops in chunks of 'runChunk'
+ * until one bid is more common than any other to a statistically sugnificant degree
+ */
 int DecisionPoint::recommendBid() {
     int optimalBidCount[gmSt->getTotalCards() + 1] {0}; // count of possible bids from 0 to totalCards held in array
     int totalRuns = 0, runChunk = 5;
@@ -51,9 +67,14 @@ int DecisionPoint::recommendBid() {
     return std::distance(optimalBidCount, std::max_element(optimalBidCount, optimalBidCount + gmSt->getTotalCards() + 1));
 }
 
+/*
+ * Loop for at least DEFAULT_PLAY_SIMULATIONS number of randomly generated games
+ * where we find hero's best play, then additional loops of 'runchunk' size
+ * until one play is more common than any other to a statistically sugnificant degree
+ */
 Card* DecisionPoint::recommendPlay(){
     int optimalPlayCount[gmSt->getCardsRemaining()] {0};
-    int runCount = 0, simCount = 0;
+    int runCount = 0, simCount = 0, runChunk = 5;
 
     // Keep running if
     // 1. runCount < default
@@ -66,7 +87,7 @@ Card* DecisionPoint::recommendPlay(){
 
     while (!statSignificantResult(optimalPlayCount, gmSt->getCardsRemaining())){
         runCount = 0;
-        while (runCount < 5){
+        while (runCount < runChunk){
             runPlaySim(optimalPlayCount, runCount, simCount);
         }
     }
@@ -78,8 +99,21 @@ Card* DecisionPoint::recommendPlay(){
                                                                      optimalPlayCount + gmSt->getCardsRemaining())));
 }
 
-// Check if most common bid result happens more often than the second most common
-// bid result to a statistically significant degree
+
+/***********************************************************************************************************************
+ * PRIVATE FUNCTIONS
+ *
+ *
+ **********************************************************************************************************************/
+
+/**********************************************************************************************************************
+ * HELPER FUNCTIONS FOR LOOPING THROUGH GAME SIMULATIONS
+ **********************************************************************************************************************/
+
+/*
+ * Check if most common bid or play result happens more often than the second most common
+ * bid or play result to a statistically significant degree
+ */
 bool DecisionPoint::statSignificantResult(int * optimalBidCount, int size){
     // Find largest element and toptwo elements
     int largest = *(std::max_element(optimalBidCount, optimalBidCount + size));
@@ -94,7 +128,9 @@ bool DecisionPoint::statSignificantResult(int * optimalBidCount, int size){
     return false;
 }
 
-// Find second largest value in array and return its value
+/*
+ * Find second largest value in array and return its value
+ */
 int DecisionPoint::secondLargestElement(int * optimalCountArr, int size){
     int largestIdx, secondIdx;
 
@@ -122,9 +158,29 @@ int DecisionPoint::secondLargestElement(int * optimalCountArr, int size){
     return optimalCountArr[secondIdx];
 }
 
+
+/**********************************************************************************************************************
+ * FINDING BEST BID TO MAKE
+ **********************************************************************************************************************/
+
+/*
+ * Generates random hands for each player, if that hasn't already been done.
+ * Then, simulates a full round of OhHell for each possible bid that hero could make,
+ * recording the score hero would get if each player played optimally the whole way
+ * through the game.
+ * Returns the bid that result in the maximum possible score.
+ *
+ * Implementation note: The function starts with the highest possible bid and
+ * returns early if that bid is one that the player will hit perfectly
+ * i.e. if a player can bid 2 and win two tricks with everyone playing optimally,
+ * then there is no reason to even test bids of 1 or 0 - the player will optimally bid 2.
+ */
 int DecisionPoint::findBestBid(){
 	int optimalBid = -1;
-    int simulationScores[gmSt->getNumPlyrs()] {-1};
+    int simulationScores[gmSt->getNumPlyrs()];
+    for (int i = 0; i < gmSt->getNumPlyrs(); i++){
+        simulationScores[i] = -1;
+    }
 
 	// Generate random hands for all opponents
     if (!gmSt->allHandsGenerated()) {
@@ -133,9 +189,9 @@ int DecisionPoint::findBestBid(){
 
     int i = gmSt->getTotalCards(); // max possible bid
     // Loop will cut out early if the amount bid results in the player getting the
-    // bonus for winning as many tricks as he bids. Obviously if you get the bonus
+    // bonus for winning as many tricks as he bids with. Obviously if you get the bonus
     // that's what you want to bid
-    while (i >= 0 && scores[this->position] <= BID_CORRECT_BONUS){
+    while (i >= 0 && scores[this->position] <= BID_CORRECT_BONUS + i - 1){
         simulateBid(i, simulationScores);
 
         if (simulationScores[this->position] > scores[this->position]){
@@ -144,10 +200,16 @@ int DecisionPoint::findBestBid(){
         }
 
         i--;
+
+        // Don't need to loop through all possible bids for a position where user entered a bid
+        if (gmSt->getBid(gmSt->getNextToAct()) == -1){
+            break;
+        }
 	}
 
 	return optimalBid;
 }
+
 
 void DecisionPoint::simulateBid(int bid, int* simulatedScores){
     GameState * newGmSt = new GameState(*gmSt);
@@ -172,6 +234,121 @@ void DecisionPoint::replaceScores(int * simulationScores){
         scores[i] = simulationScores[i];
     }
 }
+
+
+/**********************************************************************************************************************
+ * FINDING BEST CARD TO PLAY
+ **********************************************************************************************************************/
+
+void DecisionPoint::runPlaySim(int * optimalPlayCount, int& runCount, int& simCount){
+    DecisionPoint * newDPoint = new DecisionPoint(gmSt);
+    simCount++;
+    Card * optimalCard = newDPoint->findBestPlay();
+    if (!newDPoint->isTie()) { // If there wasn't a tie for best play
+        runCount++;
+        for (int i = 0; i < gmSt->getCardsRemaining(); i++) {
+            if (*optimalCard == *(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), i))) {
+                optimalPlayCount[i]++;
+                break;
+            }
+        }
+    }
+    delete newDPoint;
+    delete optimalCard;
+    optimalCard = nullptr;
+}
+
+
+Card* DecisionPoint::findBestPlay() {
+    if (!gmSt->allHandsGenerated()){
+        bool handsGenerated = genOpponentHands();
+    }
+    return makePlay();
+}
+
+
+
+Card* DecisionPoint::makePlay(){
+    int currBestCard = -1;
+    int currPosition = gmSt->getNextToAct();
+    std::vector<int> tempScores;
+    tempScores.reserve(gmSt->getNumPlyrs());
+    for (int i = 0; i < gmSt->getNumPlyrs(); i++){
+        tempScores.push_back(0);
+    }
+
+    for (int i = 0; i < gmSt->getNumPlyrs(); i++) {
+        scores[i] = -1;
+    }
+
+    int tieCount = 0;
+
+	// Loop through all potential cards available
+    for (int i = 0; i < gmSt->getCardsRemaining(); i++){
+		if (gmSt->isLastTrick()){ // base case
+		    currBestCard = i;
+		    // play out last round
+            while (gmSt->getNextToAct() != -1){
+                gmSt->playCard(0);
+            }
+            gmSt->calcFinalScores();
+            if (gmSt->getFinalScore(currPosition) > scores[currPosition]){
+                for (int j = 0; j < gmSt->getNumPlyrs(); j++) {
+                    scores[j] = gmSt->getFinalScore(j);
+                }
+            }
+
+            // reverse out last round
+            for (int j = 0; j < gmSt->getNumPlyrs(); j++){
+                gmSt->reversePlay();
+            }
+		} else {
+            // if this returns true, then play has been made
+            // false means the play was invalid for some reason, so we just skip it and move to the next card
+            std::string tempCardStr = gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), i)->getCardStr();
+            int plyrToAct = gmSt->getNextToAct();
+            if ((gmSt->playCard(i))) {
+                for (int j = 0; j < gmSt->getNumPlyrs(); j++) {
+                    tempScores[j] = scores[j];
+                }
+
+                Card * tempCardPlayed = makePlay();
+                delete tempCardPlayed; // Memory allocted in makePlay needs to be deleted
+
+                tie = false;
+
+                if (scores[currPosition] > tempScores[currPosition]) {
+                    currBestCard = i;
+                } else if (scores[currPosition] < tempScores[currPosition]){
+                    for (int j = 0; j < gmSt->getNumPlyrs(); j++) {
+                        scores[j] = tempScores[j];
+                    }
+                } else { // Tie, so current player is equally likely to play each card
+                    // If the scores are equal, then playing either card is fine,
+                    // so I just leave it as whatever card is currently chosen
+                    tie = true;
+                    tieCount++;
+
+                    // avg scores somehow (wtd average though, since tempScores can already be an average
+                    for (int j = 0; j < gmSt->getNumPlyrs(); j++) {
+                        scores[j] = (scores[j] + tieCount * tempScores[j]) / static_cast<double>(tieCount + 1);
+                    }
+                }
+                gmSt->reversePlay();
+            }
+        }
+	}
+
+	// As cards are played and plays reversed, the order of cards in a player's hand is reversed
+    // So, position of card i is at getCardsRemaining() - original position - 1
+    return new Card(*(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), gmSt->getCardsRemaining() - currBestCard - 1)));
+}
+
+
+
+/**********************************************************************************************************************
+ * GENERATING OPPONENT HANDS
+ **********************************************************************************************************************/
 
 // Called within the first call to findBestPlay, so every player has a bid
 // and potentially some players have already played a card in the first round
@@ -246,7 +423,7 @@ void DecisionPoint::addHandToMatchBid(GameState * masterGmSt, int plyrPosition){
 GameState* DecisionPoint::setNewRandomHandGmSt(int currPosition, GameState * masterGmSt){
     // Make a copy of masterGameState, delete bids for player in question + any acting after player
     GameState * indivGmSt = new GameState(masterGmSt->getNumPlyrs(), masterGmSt->getHeroPosition(),
-                              masterGmSt->getTotalCards(), masterGmSt->getFlippedCard());
+                                          masterGmSt->getTotalCards(), masterGmSt->getFlippedCard());
     // For all players up to and including current position in question, copy over known cards in hand
     for (int j = 0; j <= currPosition; j++) {
         for (int k = 0; k < masterGmSt->getTotalCards(); k++) {
@@ -276,7 +453,7 @@ GameState* DecisionPoint::reconstructGmStFromStart(){
     // To hold randomly generated hands that match bids (for all players, including hero)
     // So, this copied gameState holds bids for everyone, but no hands yet
     GameState * startGmSt = new GameState(gmSt->getNumPlyrs(), gmSt->getHeroPosition(),
-                                           gmSt->getTotalCards(), gmSt->getFlippedCard());
+                                          gmSt->getTotalCards(), gmSt->getFlippedCard());
     // copy over bids
     for (int i = 0; i < startGmSt->getNumPlyrs(); i++){
         startGmSt->setBid(i, gmSt->getBid(i));
@@ -352,23 +529,23 @@ bool DecisionPoint::cardAlreadyUsed(
 
 // Function to mark suits that cannot be part of a player's generated random hand
 // The logic is that if a suit was led on a previous round and the player did not follow suit, then they cannot have any of that suit
-// So, the function checks the leading suit of each completed round, and if the player did not follow suit, 
+// So, the function checks the leading suit of each completed round, and if the player did not follow suit,
 // marks the leading suit of that round as invalid for card generation for future round simulation
 void DecisionPoint::markInvalidSuits(int position, bool * validSuits){
-	int round = 0;
-	
-	while (gmSt->getCardFromPlydCrds(round, position) != nullptr){
-		// If player not leading round (if they are, then any card is valid and doesn't affect genHands)
-		if (position != gmSt->getRoundLead(round)){ 
-			// If leading suit != suit played by player in question
-			if (gmSt->getCardFromPlydCrds(round, position)->getSuit() !=
+    int round = 0;
+
+    while (gmSt->getCardFromPlydCrds(round, position) != nullptr){
+        // If player not leading round (if they are, then any card is valid and doesn't affect genHands)
+        if (position != gmSt->getRoundLead(round)){
+            // If leading suit != suit played by player in question
+            if (gmSt->getCardFromPlydCrds(round, position)->getSuit() !=
                 gmSt->getCardFromPlydCrds(round, gmSt->getRoundLead(round))->getSuit()){
-				// mark led suit as invalid, since player can't have any of that suit (since they didn't follow suit)
-				validSuits[gmSt->getCardFromPlydCrds(round, gmSt->getRoundLead(round))->getSuit()] = false;
-			}
-		}
-		round++;
-	}
+                // mark led suit as invalid, since player can't have any of that suit (since they didn't follow suit)
+                validSuits[gmSt->getCardFromPlydCrds(round, gmSt->getRoundLead(round))->getSuit()] = false;
+            }
+        }
+        round++;
+    }
 }
 
 bool DecisionPoint::isValidSuit(int cardSuit, bool * validSuits){
@@ -376,104 +553,4 @@ bool DecisionPoint::isValidSuit(int cardSuit, bool * validSuits){
         return true;
     }
     return false;
-}
-
-void DecisionPoint::runPlaySim(int * optimalPlayCount, int& runCount, int& simCount){
-    DecisionPoint * newDPoint = new DecisionPoint(gmSt);
-    simCount++;
-    Card * optimalCard = newDPoint->findBestPlay();
-    if (!newDPoint->isTie()) { // If there wasn't a tie for best play
-        runCount++;
-        for (int i = 0; i < gmSt->getCardsRemaining(); i++) {
-            if (*optimalCard == *(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), i))) {
-                optimalPlayCount[i]++;
-                break;
-            }
-        }
-    }
-    delete newDPoint;
-    delete optimalCard;
-    optimalCard = nullptr;
-}
-
-Card* DecisionPoint::findBestPlay() {
-    if (!gmSt->allHandsGenerated()){
-        bool handsGenerated = genOpponentHands();
-        if (!handsGenerated){
-            return nullptr;
-        }
-    }
-
-    Card* cardPlayed = makePlay();
-
-    return cardPlayed;
-}
-
-
-Card* DecisionPoint::makePlay(){
-    int currBestCard = -1;
-    int currPosition = gmSt->getNextToAct();
-    std::vector<int> tempScores;
-    tempScores.reserve(gmSt->getNumPlyrs());
-    for (int i = 0; i < gmSt->getNumPlyrs(); i++){
-        tempScores.push_back(0);
-    }
-    Card * cardPlayed = nullptr;
-
-    for (int i = 0; i < gmSt->getNumPlyrs(); i++) {
-        scores[i] = -1;
-    }
-
-	// Loop through all potential cards available
-    for (int i = 0; i < gmSt->getCardsRemaining(); i++){
-		if (gmSt->isLastTrick()){ // base case
-		    currBestCard = i;
-		    // play out last round
-            while (gmSt->getNextToAct() != -1){
-                gmSt->playCard(0);
-            }
-            gmSt->calcFinalScores();
-            if (gmSt->getFinalScore(currPosition) > scores[currPosition]){
-                for (int j = 0; j < gmSt->getNumPlyrs(); j++) {
-                    scores[j] = gmSt->getFinalScore(j);
-                }
-            }
-            // reverse out last round
-            for (int j = 0; j < gmSt->getNumPlyrs(); j++){
-                gmSt->reversePlay();
-            }
-		} else {
-            // if this returns true, then play has been made
-            // false means the play was invalid for some reason, so we just skip it and move to the next card
-            if ((gmSt->playCard(i))) {
-                for (int j = 0; j < gmSt->getNumPlyrs(); j++) {
-                    tempScores[j] = scores[j];
-                }
-
-                Card * tempCardPlayed = makePlay();
-                delete tempCardPlayed; // Memory allocted in makePlay needs to be deleted
-
-                tie = false;
-
-                if (scores[currPosition] > tempScores[currPosition]){
-                    currBestCard = i;
-                } else {
-                    // If the scores are equal, then playing either card is fine,
-                    // so I just leave it as whatever card is currently chosen
-                    if (scores[currPosition] == tempScores[currPosition]){
-                        tie = true;
-                    }
-                    for (int j = 0; j < gmSt->getNumPlyrs(); j++) {
-                        scores[j] = tempScores[j];
-                    }
-                }
-                gmSt->reversePlay();
-            }
-        }
-	}
-
-	// As cards are played and plays reversed, the order of cards in a player's hand is reversed
-    // So, position of card i is at getCardsRemaining() - original position - 1
-	cardPlayed = new Card(*(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), gmSt->getCardsRemaining() - currBestCard - 1)));
-    return cardPlayed;
 }
