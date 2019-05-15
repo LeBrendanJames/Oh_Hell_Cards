@@ -9,7 +9,7 @@ int main(){
 
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
-    srand(237); // Seeding the same to force determinism in tests
+    srand(237); // Seeding the same to force determinism in tests, 237 not significant - just needed something
 
     // DECISIONPOINT TESTS
     std::cout << std::endl;
@@ -37,6 +37,9 @@ int main(){
     auto * dPoint = new DecisionPoint(game);
     if (dPoint->recommendPlay()->getCardStr() != "Ah"){
         std::cout << "Error with semi-complete game" << std::endl;
+        testsFailed++;
+    } else {
+        testsPassed++;
     }
     delete game;
     delete dPoint;
@@ -61,11 +64,7 @@ int main(){
     game->addCardToPlyrHand(3, "Jh");
     game->addCardToPlyrHand(3, "Ad");
     dPoint = new DecisionPoint(game);
-    if (dPoint->recommendBid() == 2){
-        std::cout << "Cards 2h, Ah. Bid Recommendation == 2" << std::endl;
-    } else {
-        std::cout << "Cards 2h, Ah. Bid recommendation == 1" << std::endl;
-    }
+    int bidFirstOrder = dPoint->recommendBid();
     delete game;
     delete dPoint;
     delete flippedCard;
@@ -86,10 +85,13 @@ int main(){
     game->addCardToPlyrHand(3, "Jh");
     game->addCardToPlyrHand(3, "Ad");
     dPoint = new DecisionPoint(game);
-    if (dPoint->recommendBid() == 2){
-        std::cout << "Cards Ah, 2h. Bid Recommendation == 2" << std::endl;
+    int bidSecondOrder = dPoint->recommendBid();
+
+    if (bidFirstOrder == bidSecondOrder){
+        testsPassed++;
     } else {
-        std::cout << "Cards Ah, 2h. Bid recommendation == 1" << std::endl;
+        std::cout << "Test Failed - Hero cards in different order produced different recommended bids." << std::endl;
+        testsFailed++;
     }
     delete game;
     delete dPoint;
@@ -111,14 +113,12 @@ int main(){
     game->setBid(3, 0);
     dPoint = new DecisionPoint(game);
     if (dPoint->getScore(0) == -1 && dPoint->getScore(3) == -1){
-        std::cout << "TEST: DecisionPoint constructor sets scores vector correctly - PASSED" << std::endl;
         testsPassed++;
     } else {
         std::cout << "TEST: DecisionPoint constructor sets scores vector correctly - FAILED" << std::endl;
         testsFailed++;
     }
     if (dPoint->getScore(20) == -1){
-        std::cout << "TEST: Invalid index passed to getScore is caught and '-1' returned - PASSED" << std::endl;
         testsPassed++;
     } else {
         std::cout << "TEST: Invalid index passed to getScore is caught and '-1' returned - FAILED" << std::endl;
@@ -126,20 +126,10 @@ int main(){
     }
     delete dPoint;
     dPoint = nullptr;
-    //delete game;
-    //game = nullptr;
 
-
-
-    std::cout << std::endl;
-    std::cout << "Testing genOpponentHands() and makePlay():" << std::endl;
 
     dPoint = new DecisionPoint(game);
-    //int maxScoreCounter = runPlaySims(4, game);
-    //int maxScoreCounter = runPlaySims(200, game);
     if (dPoint->recommendPlay()->getCardStr() == "Ah"){
-    //if (game->getCardFromPlyrHands(0, maxScoreCounter)->getCardStr() == "Ah"){
-        std::cout << "TEST: DecisionPoint sims - recommendation correct - PASSED" << std::endl;
         testsPassed++;
     } else {
         std::cout << "TEST: DecisionPoint sims - recommendation correct - FAILED" << std::endl;
@@ -149,12 +139,8 @@ int main(){
     dPoint = nullptr;
     delete game;
     game = nullptr;
-    //maxScoreCounter = 0;
 
 
-
-    std::cout << std::endl;
-    std::cout << "Testing different game sizes/hero cards/bid amounts/hero positions:" << std::endl;
     game = new GameState(5, 0, 2, flippedCard, heroHand);
     game->setBid(0, 2);
     game->setBid(1, 0);
@@ -162,10 +148,7 @@ int main(){
     game->setBid(3, 0);
     game->setBid(4, 0);
     dPoint = new DecisionPoint(game);
-    //int maxScoreCounter = runPlaySims(50, game);
     if (dPoint->recommendPlay()->getCardStr() == "Ah"){
-    //if (game->getCardFromPlyrHands(0, maxScoreCounter)->getCardStr() == "Ah"){
-        std::cout << "TEST: 5 player game (Hero cards 2h/Ah) correct recommendation - PASSED" << std::endl;
         testsPassed++;
     } else {
         std::cout << "TEST: 5 player game (Hero cards 2h/Ah) correct recommendation - FAILED" << std::endl;
@@ -178,7 +161,6 @@ int main(){
 
 
 
-
     game = new GameState(5, 1, 2, flippedCard, heroHand);
     game->makeBid(0);
     game->makeBid(2);
@@ -188,10 +170,7 @@ int main(){
     game->addCardToPlyrHand(0, "Qc");
     game->playCard(0);
     dPoint = new DecisionPoint(game);
-    //maxScoreCounter = runPlaySims(10, game);
     if (dPoint->recommendPlay()->getCardStr() == "2h"){
-    //if (game->getCardFromPlyrHands(1, maxScoreCounter)->getCardStr() == "2h"){
-        std::cout << "TEST: 5 player game (Hero 2nd pos, cards 2h/Ah) correct rec - PASSED" << std::endl;
         testsPassed++;
     } else {
         std::cout << "TEST: 5 player game (Hero 2nd pos, cards 2h/Ah) correct rec - FAILED" << std::endl;
@@ -203,16 +182,10 @@ int main(){
     game = nullptr;
 
 
-
-
-    std::cout << std::endl;
-    std::cout << "Testing recommendBid() recommendation:" << std::endl;
-
     game = new GameState(4, 0, 2, flippedCard, heroHand);
     dPoint = new DecisionPoint(game);
-    int optimalBid = dPoint->recommendBid(); //runBidSims(100, game);
+    int optimalBid = dPoint->recommendBid();
     if (optimalBid == 2){
-        std::cout << "TEST: Optimal Bid with Ah/2h (trump Hearts) == 2 - PASSED" << std::endl;
         testsPassed++;
     } else {
         std::cout << "TEST: Optimal Bid with Ah/2h (trump Hearts) == 2 - FAILED" << std::endl;
@@ -227,14 +200,9 @@ int main(){
 
     game = new GameState(3, 1, 2, flippedCard, heroHand);
     game->makeBid(0);
-    //std::cout << "First player made bid of 0. Next to act = " << game->getNextToAct() << std::endl;
     dPoint = new DecisionPoint(game);
-    //dPoint->genOpponentHands();
-    //optimalBid = 0;
     optimalBid = dPoint->recommendBid();
-    //optimalBid = runBidSims(50, game);
     if (optimalBid == 2){
-        std::cout << "TEST: Optimal Bid from 2nd pos with Ah/2h (trump Hearts) == 2 - PASSED" << std::endl;
         testsPassed++;
     } else {
         std::cout << "TEST: Optimal Bid from 2nd pos with Ah/2h (trump Hearts) == 2 - FAILED" << std::endl;
@@ -249,19 +217,15 @@ int main(){
     game->makeBid(0);
     game->makeBid(0);
     dPoint = new DecisionPoint(game);
-    //dPoint->genOpponentHands();
-    //optimalBid = 0;
     optimalBid = dPoint->recommendBid();
-    //optimalBid = runBidSims(50, game);
     if (optimalBid == 2){
-        std::cout << "TEST: Optimal Bid from 3rd pos with Ah/2h (trump Hearts) == 2 - PASSED" << std::endl;
         testsPassed++;
     } else {
         std::cout << "TEST: Optimal Bid from 3rd pos with Ah/2h (trump Hearts) == 2 - FAILED" << std::endl;
         testsFailed++;
     }
-    //delete dPoint;
-    //dPoint = nullptr;
+    delete dPoint;
+    dPoint = nullptr;
     delete game;
     game = nullptr;
 

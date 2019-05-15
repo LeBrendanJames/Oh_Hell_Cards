@@ -42,7 +42,7 @@ private:
     void replaceScores(int * simulationScores);
 
     // Finding best play to make
-    void runPlaySim(int * optimalPlayCount, int& runCount, int& simCount);
+    void simulatePlay(int * optimalPlayCount);
     Card* findBestPlay();
     Card* makePlay();
 

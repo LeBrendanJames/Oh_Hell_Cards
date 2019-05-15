@@ -40,12 +40,16 @@ bool DecisionPoint::isTie() {
 }
 
 /*
+ * RECOMMENDBID
  * Loop for at least DEFAULT_BID_SIMULATIONS number of randomly generated games
  * where we find hero's best bid, then additional loops in chunks of 'runChunk'
  * until one bid is more common than any other to a statistically sugnificant degree
  */
 int DecisionPoint::recommendBid() {
-    int optimalBidCount[gmSt->getTotalCards() + 1] {0}; // count of possible bids from 0 to totalCards held in array
+    int optimalBidCount[gmSt->getTotalCards() + 1]; // count of possible bids from 0 to totalCards held in array
+    for (int i = 0; i <= gmSt->getTotalCards(); i++){
+        optimalBidCount[i] = 0;
+    }
     int totalRuns = 0, runChunk = 5;
     int tempBid = -1;
     DecisionPoint * newDPoint = nullptr;
@@ -68,28 +72,21 @@ int DecisionPoint::recommendBid() {
 }
 
 /*
+ * RECOMMENDPLAY
  * Loop for at least DEFAULT_PLAY_SIMULATIONS number of randomly generated games
  * where we find hero's best play, then additional loops of 'runchunk' size
  * until one play is more common than any other to a statistically sugnificant degree
  */
 Card* DecisionPoint::recommendPlay(){
     int optimalPlayCount[gmSt->getCardsRemaining()] {0};
-    int runCount = 0, simCount = 0, runChunk = 5;
+    int runCount = 0, runChunk = 5;
 
-    // Keep running if
-    // 1. runCount < default
-    // 2. runCount > 2 and is accruing fast enough. In other words:
-    // runCount * 5 being less than simCount would mean there's a lot of ties
-    // so I should just go with whatever is winning every onece in a while
-    while (runCount < DEFAULT_PLAY_SIMULATIONS && (runCount <= 2 || (runCount > 0 && runCount * 5 > simCount))){
-        runPlaySim(optimalPlayCount, runCount, simCount);
-    }
-
-    while (!statSignificantResult(optimalPlayCount, gmSt->getCardsRemaining())){
-        runCount = 0;
-        while (runCount < runChunk){
-            runPlaySim(optimalPlayCount, runCount, simCount);
+    while (runCount < DEFAULT_PLAY_SIMULATIONS ||
+           !statSignificantResult(optimalPlayCount, gmSt->getCardsRemaining())){
+        for (int i = 0; i < runChunk; i++){
+            simulatePlay(optimalPlayCount);
         }
+        runCount += runChunk;
     }
 
     // Return the card that has come up the most in the above sims
@@ -111,6 +108,7 @@ Card* DecisionPoint::recommendPlay(){
  **********************************************************************************************************************/
 
 /*
+ * STATSIGNIFICANTRESULT
  * Check if most common bid or play result happens more often than the second most common
  * bid or play result to a statistically significant degree
  */
@@ -129,6 +127,7 @@ bool DecisionPoint::statSignificantResult(int * optimalBidCount, int size){
 }
 
 /*
+ * SECONDLARGESTELEMENT
  * Find second largest value in array and return its value
  */
 int DecisionPoint::secondLargestElement(int * optimalCountArr, int size){
@@ -164,6 +163,7 @@ int DecisionPoint::secondLargestElement(int * optimalCountArr, int size){
  **********************************************************************************************************************/
 
 /*
+ * FINDBESTBID
  * Generates random hands for each player, if that hasn't already been done.
  * Then, simulates a full round of OhHell for each possible bid that hero could make,
  * recording the score hero would get if each player played optimally the whole way
@@ -188,9 +188,9 @@ int DecisionPoint::findBestBid(){
     }
 
     int i = gmSt->getTotalCards(); // max possible bid
-    // Loop will cut out early if the amount bid results in the player getting the
-    // bonus for winning as many tricks as he bids with. Obviously if you get the bonus
-    // that's what you want to bid
+    // Loop will cut out early if the amount bid results in the player getting more the
+    // points than the max if he were to bid lower. Obviously if you can get more than the
+    // max of lower bids, you're not going to bid any lower.
     while (i >= 0 && scores[this->position] <= BID_CORRECT_BONUS + i - 1){
         simulateBid(i, simulationScores);
 
@@ -240,12 +240,10 @@ void DecisionPoint::replaceScores(int * simulationScores){
  * FINDING BEST CARD TO PLAY
  **********************************************************************************************************************/
 
-void DecisionPoint::runPlaySim(int * optimalPlayCount, int& runCount, int& simCount){
+void DecisionPoint::simulatePlay(int *optimalPlayCount){
     DecisionPoint * newDPoint = new DecisionPoint(gmSt);
-    simCount++;
     Card * optimalCard = newDPoint->findBestPlay();
     if (!newDPoint->isTie()) { // If there wasn't a tie for best play
-        runCount++;
         for (int i = 0; i < gmSt->getCardsRemaining(); i++) {
             if (*optimalCard == *(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), i))) {
                 optimalPlayCount[i]++;
