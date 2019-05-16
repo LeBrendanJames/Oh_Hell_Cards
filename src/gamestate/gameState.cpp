@@ -1,5 +1,3 @@
-
-
 #include "gameState.h"
 
 GameState::GameState(int numPlyrs, int heroPosition, int totalCards, Card * flippedCard) {
@@ -7,7 +5,6 @@ GameState::GameState(int numPlyrs, int heroPosition, int totalCards, Card * flip
     this->heroPosition = heroPosition;
     this->totalCards = totalCards;
     this->numCardsRemaining = totalCards; // Assuming gameplay has not started
-    this->trump = flippedCard->getSuit();
     this->nextToAct = 0;
     this->currRound = 0;
     bids = new int[numPlyrs];
@@ -42,7 +39,6 @@ GameState::GameState(int numPlyrs, int heroPosition, int totalCards, Card * flip
     this->heroPosition = heroPosition;
     this->totalCards = totalCards;
     this->numCardsRemaining = totalCards; // Assuming gameplay has not started
-    this->trump = flippedCard->getSuit();
     this->nextToAct = 0;
     this->currRound = 0;
     bids = new int[numPlyrs];
@@ -82,7 +78,6 @@ GameState::GameState(const GameState &oldGmSt){
     this->heroPosition = oldGmSt.heroPosition;
     this->totalCards = oldGmSt.totalCards;
     this->numCardsRemaining = oldGmSt.numCardsRemaining;
-    this->trump = oldGmSt.trump;
     this->nextToAct = oldGmSt.nextToAct;
     this->currRound = oldGmSt.currRound;
 
@@ -153,7 +148,10 @@ GameState::~GameState(){
     delete flippedCard;
 }
 
-
+/*********************************************************************************************************************
+ * GETTERS
+ *
+ *********************************************************************************************************************/
 int GameState::getNumPlyrs(){
     return numPlyrs;
 }
@@ -171,7 +169,7 @@ int GameState::getCardsRemaining(){
 }
 
 Suit GameState::getTrump(){
-    return trump;
+    return flippedCard->getSuit();
 }
 
 int GameState::getNextToAct(){
@@ -206,6 +204,11 @@ Card * GameState::getFlippedCard(){
     return flippedCard;
 }
 
+
+/**********************************************************************************************************************
+ * SETTERS
+ *
+ *********************************************************************************************************************/
 void GameState::setBid(int position, int bid) {
     bids[position] = bid;
 }
@@ -227,22 +230,19 @@ bool GameState::addCardToPlyrHand(int playerPos, std::string cardToAdd) {
     return validCard && cardAdded;
 }
 
-bool GameState::isTrump(Card * card){
-    if (card->getSuit() == trump){
-        return true;
-    } else {
-        return false;
-    }
-}
 
+
+/**********************************************************************************************************************
+ * GAMEPLAY PUBLIC FUNCTIONS
+ *********************************************************************************************************************/
 bool GameState::makeBid(int bid){
-	if (bid >= 0 && bid <= totalCards){
-		bids[nextToAct] = bid;
-		updateNextToAct();
-		return true;
-	}
-	
-	return false;
+    if (bid >= 0 && bid <= totalCards){
+        bids[nextToAct] = bid;
+        updateNextToAct();
+        return true;
+    }
+
+    return false;
 }
 
 bool GameState::playCard(int cardToPlay){
@@ -257,6 +257,12 @@ bool GameState::playCard(int cardToPlay){
     } else {
         return false;
     }
+}
+
+void GameState::reversePlay(){
+    reverseNextToAct(); // Must be done first. Next two functions rely on this being already moved back one move.
+    restoreCardToPlyrHand(nextToAct);
+    removeCardFromPlydCrds(totalCards - numCardsRemaining, nextToAct); // **Previously passed currRound but theres a bug with updating that**
 }
 
 bool GameState::calcFinalScores(){
@@ -287,6 +293,91 @@ bool GameState::calcFinalScores(){
     return true;
 }
 
+
+/**********************************************************************************************************************
+ * QUERY STATE OF GAME
+ *********************************************************************************************************************/
+bool GameState::isTrump(Card * card){
+    if (card->getSuit() == flippedCard->getSuit()){
+        return true;
+    } else {
+        return false;
+    }
+}
+
+bool GameState::cardPrevUsed(std::string card){
+    Card cardToCheck(card);
+
+    // Check if card in plyrHands or plydCrds
+    int i = 0, j = 0, k = 0;
+    while (i < numPlyrs){
+        // Check against cards in player hands
+        j = 0;
+        while (j < numCardsRemaining){
+            if (plyrHands[i][j] != nullptr && cardToCheck == *(plyrHands[i][j])) { // Order matters, null check first
+                return true;
+            }
+            j++;
+        }
+
+        // Check against cards in plydCrds
+        k = 0;
+        while (k < totalCards){
+            if (plydCrds[k][i] != nullptr && cardToCheck == *(plydCrds[k][i])){ // Order matters, null check first
+                return true;
+            }
+            k++;
+        }
+
+        i++;
+    }
+
+    // Check against flipped card
+    if (cardToCheck == *flippedCard){
+        return true;
+    }
+
+    return false;
+}
+
+bool GameState::cardPrevUsed(int cardVal, int cardSuit){
+    // Check if card in plyrHands or plydCrds
+    int i = 0, j = 0, k = 0;
+    while (i < numPlyrs){
+        // Check against cards in player hands
+        j = 0;
+        //while (j < totalCards){
+        while (j < numCardsRemaining){
+            if (plyrHands[i][j] != nullptr &&
+                cardVal == plyrHands[i][j]->getVal() &&
+                cardSuit == static_cast<int>(plyrHands[i][j]->getSuit()) + 1){
+                return true;
+            }
+            j++;
+        }
+
+        // Check against cards in plydCrds
+        k = 0;
+        while (k < totalCards){
+            if (plydCrds[k][i] != nullptr &&
+                cardVal == plydCrds[k][i]->getVal() &&
+                cardSuit == static_cast<int>(plydCrds[k][i]->getSuit()) + 1){
+                return true;
+            }
+            k++;
+        }
+
+        i++;
+    }
+
+    // Check against flipped card
+    if (cardVal == flippedCard->getVal() && cardSuit == static_cast<int>(flippedCard->getSuit()) + 1){
+        return true;
+    }
+
+    return false;
+}
+
 bool GameState::allHandsGenerated(){
     int cardCount = 0, cardCountFromHands = 0, cardCountFromPlyd = 0;
 
@@ -313,26 +404,53 @@ bool GameState::allHandsGenerated(){
     }
 }
 
-void GameState::reversePlay(){
-    reverseNextToAct(); // Must be done first. Next two functions rely on this being already moved back one move.
-    restoreCardToPlyrHand(nextToAct);
-    removeCardFromPlydCrds(totalCards - numCardsRemaining, nextToAct); // **Previously passed currRound but theres a bug with updating that**
+bool GameState::isLastTrick() {
+    return roundLead[totalCards - 1] != -1;
 }
 
-void GameState::reverseNextToAct(){
-    if (plydCrds[0][0] == nullptr){ // In bid phase (either still bidding or everyone has bid but nobody has played card yet)
-        // Adding numPlyrs then mod math just to wrap from 0 to numPlyrs - 1 correctly
-        nextToAct = (nextToAct + numPlyrs - 1) % numPlyrs;
-    } else if (nextToAct == roundLead[totalCards - numCardsRemaining]) { // Ended round and set up next
-        nextToAct = (roundLead[totalCards - numCardsRemaining - 1] + numPlyrs - 1) % numPlyrs;
-        roundLead[totalCards - numCardsRemaining] = -1;
-        numCardsRemaining++;
-    } else if (nextToAct == -1){ // Game ended w/ previous move
-        nextToAct = (roundLead[totalCards - 1] + numPlyrs - 1) % numPlyrs;
-        numCardsRemaining++;
-    } else { // Just within a round (moving back from plyr 3 to plyr 2, for example)
-        nextToAct = (nextToAct + numPlyrs - 1) % numPlyrs;
+
+/**********************************************************************************************************************
+ * PRIVATE GAMEPLAY HELPER FUNCTIONS
+ *********************************************************************************************************************/
+bool GameState::checkValidPlay(int position, int cardToPlay){
+    if (cardToPlay < 0 || cardToPlay >= numCardsRemaining){
+        return false; // If cardToPlay outside range
+    } else if (plyrHands[position][cardToPlay] == nullptr){
+        return false; // If there isn't a card there to play
+    } else if ((roundLead[currRound] == -1 || roundLead[currRound] == position)){
+        return true; // Play is automatically valid if it is leading the round
+    } else {
+        bool valid = true; // default to true unless below check isn't satisfied
+
+        // find roundLead suit
+        Suit leadSuit = plydCrds[currRound][roundLead[currRound]]->getSuit();
+
+        // Find if player is not playing leadSuit
+        if (plyrHands[position][cardToPlay]->getSuit() != leadSuit){
+            int i = 0;
+            // Check all other cards in player hand to see if there is one that matches leadSuit
+            while (i < numCardsRemaining && valid){
+                if (plyrHands[position][i] != nullptr && plyrHands[position][i]->getSuit() == leadSuit){
+                    valid = false;
+                }
+                i++;
+            }
+        }
+        return valid;
     }
+}
+
+bool GameState::addCardToPlydCrds(int round, int position, std::string card) {
+    // TODO: Error checking?
+    plydCrds[totalCards - numCardsRemaining][nextToAct] = new Card(card);
+
+    return true;
+}
+
+bool GameState::removeCardFromPlydCrds(int round, int position){
+    delete plydCrds[round][position];
+    plydCrds[round][position] = nullptr;
+    return true;
 }
 
 bool GameState::restoreCardToPlyrHand(int plyrPosition){
@@ -346,123 +464,6 @@ bool GameState::restoreCardToPlyrHand(int plyrPosition){
 
     return true;
 }
-
-bool GameState::removeCardFromPlydCrds(int round, int position){
-    delete plydCrds[round][position];
-    plydCrds[round][position] = nullptr;
-    return true;
-}
-
-bool GameState::cardPrevUsed(std::string card){
-	Card cardToCheck(card);
-	
-	// Check if card in plyrHands or plydCrds
-    int i = 0, j = 0, k = 0;
-    while (i < numPlyrs){
-        // Check against cards in player hands
-        j = 0;
-        while (j < numCardsRemaining){
-            if (plyrHands[i][j] != nullptr && cardToCheck == *(plyrHands[i][j])) { // Order matters, null check first
-                return true;
-            }
-            j++;
-        }
-
-        // Check against cards in plydCrds
-        k = 0;
-        while (k < totalCards){
-            if (plydCrds[k][i] != nullptr && cardToCheck == *(plydCrds[k][i])){ // Order matters, null check first
-                return true;
-            }
-            k++;
-        }
-
-        i++;
-    }
-	
-	// Check against flipped card
-    if (cardToCheck == *flippedCard){
-		return true;
-	}
-
-	return false;
-}
-
-bool GameState::cardPrevUsed(int cardVal, int cardSuit){
-    // Check if card in plyrHands or plydCrds
-    int i = 0, j = 0, k = 0;
-    while (i < numPlyrs){
-        // Check against cards in player hands
-        j = 0;
-        //while (j < totalCards){
-        while (j < numCardsRemaining){
-            if (plyrHands[i][j] != nullptr &&
-                cardVal == plyrHands[i][j]->getVal() &&
-                cardSuit == static_cast<int>(plyrHands[i][j]->getSuit()) + 1){
-                return true;
-            }
-            j++;
-        }
-
-        // Check against cards in plydCrds
-        k = 0;
-        while (k < totalCards){
-            if (plydCrds[k][i] != nullptr &&
-                    cardVal == plydCrds[k][i]->getVal() &&
-                    cardSuit == static_cast<int>(plydCrds[k][i]->getSuit()) + 1){
-                return true;
-            }
-            k++;
-        }
-
-        i++;
-    }
-
-    // Check against flipped card
-    if (cardVal == flippedCard->getVal() && cardSuit == static_cast<int>(flippedCard->getSuit()) + 1){
-        return true;
-    }
-
-    return false;
-}
-
-bool GameState::checkValidPlay(int position, int cardToPlay){
-    if (cardToPlay < 0 || cardToPlay >= numCardsRemaining){
-        return false; // If cardToPlay outside range
-    } else if (plyrHands[position][cardToPlay] == nullptr){
-        return false; // If there isn't a card there to play
-    } else if ((roundLead[currRound] == -1 || roundLead[currRound] == position)){
-		return true; // Play is automatically valid if it is leading the round 
-	} else {
-		bool valid = true; // default to true unless below check isn't satisfied
-
-		// find roundLead suit
-		Suit leadSuit = plydCrds[currRound][roundLead[currRound]]->getSuit();
-
-		// Find if player is not playing leadSuit
-        if (plyrHands[position][cardToPlay]->getSuit() != leadSuit){
-            int i = 0;
-            // Check all other cards in player hand to see if there is one that matches leadSuit
-            while (i < numCardsRemaining && valid == true){
-                if (plyrHands[position][i] != nullptr && plyrHands[position][i]->getSuit() == leadSuit){
-                    valid = false;
-                }
-                i++;
-            }
-        }
-
-		return valid;
-	}
-	
-}
-
-bool GameState::addCardToPlydCrds(int round, int position, std::string card) {
-    // TODO: Error checking?
-    plydCrds[totalCards - numCardsRemaining][nextToAct] = new Card(card);
-
-    return true;
-}
-
 
 bool GameState::removeCardFromPlyrHand(int plyrPosition, std::string card){
     for (int i = 0; i < numCardsRemaining; i++){
@@ -495,12 +496,28 @@ void GameState::updateNextToAct(){
     } else if (nextToAct == roundLead[totalCards - numCardsRemaining]){ // Trick over
         nextToAct = findTrickWinner(totalCards - numCardsRemaining);
         numCardsRemaining--;
-		if (numCardsRemaining != 0){ // If there are remaining tricks
-			// Update roundLead array
-			roundLead[totalCards - numCardsRemaining] = nextToAct;
-		} else { // Update next to act to -1 if round/tricks are over 
-			nextToAct = -1;
-		}
+        if (numCardsRemaining != 0){ // If there are remaining tricks
+            // Update roundLead array
+            roundLead[totalCards - numCardsRemaining] = nextToAct;
+        } else { // Update next to act to -1 if round/tricks are over
+            nextToAct = -1;
+        }
+    }
+}
+
+void GameState::reverseNextToAct(){
+    if (plydCrds[0][0] == nullptr){ // In bid phase (either still bidding or everyone has bid but nobody has played card yet)
+        // Adding numPlyrs then mod math just to wrap from 0 to numPlyrs - 1 correctly
+        nextToAct = (nextToAct + numPlyrs - 1) % numPlyrs;
+    } else if (nextToAct == roundLead[totalCards - numCardsRemaining]) { // Ended round and set up next
+        nextToAct = (roundLead[totalCards - numCardsRemaining - 1] + numPlyrs - 1) % numPlyrs;
+        roundLead[totalCards - numCardsRemaining] = -1;
+        numCardsRemaining++;
+    } else if (nextToAct == -1){ // Game ended w/ previous move
+        nextToAct = (roundLead[totalCards - 1] + numPlyrs - 1) % numPlyrs;
+        numCardsRemaining++;
+    } else { // Just within a round (moving back from plyr 3 to plyr 2, for example)
+        nextToAct = (nextToAct + numPlyrs - 1) % numPlyrs;
     }
 }
 
@@ -532,14 +549,4 @@ int GameState::findTrickWinner(int trickNum){
     }
 
     return currWinningPosition;
-}
-
-void GameState::clearPlyrHand(int plyr){
-    for (int i = 0; i < numCardsRemaining; i++){
-        plyrHands[plyr][i] = nullptr;
-    }
-}
-
-bool GameState::isLastTrick() {
-    return roundLead[totalCards - 1] != -1;
 }
