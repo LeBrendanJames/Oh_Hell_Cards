@@ -33,7 +33,7 @@ int DecisionPoint::getScore(int index){
 /*
  * ISTIE
  * Getter to see if the DecisionPoint run resulted in a tie between two different possible card plays
- * Tie variable set within makePlay function if two playes result in same score at end of round
+ * Tie variable set within simulatePlay function if two playes result in same score at end of round
  */
 bool DecisionPoint::isTie() {
     return tie;
@@ -84,7 +84,7 @@ Card* DecisionPoint::recommendPlay(){
     while (runCount < DEFAULT_PLAY_SIMULATIONS ||
            !statSignificantResult(optimalPlayCount, gmSt->getCardsRemaining())){
         for (int i = 0; i < runChunk; i++){
-            simulatePlay(optimalPlayCount);
+            findBestPlay(optimalPlayCount);
         }
         runCount += runChunk;
     }
@@ -210,7 +210,13 @@ int DecisionPoint::findBestBid(){
 	return optimalBid;
 }
 
-
+/*
+ * SIMULATEBID
+ * Take a gamestate. If the nextToAct player is yet to bid, make the bid
+ * passed in for them. Otherwise, drop down into making plays recursively in
+ * simulatePlay()
+ * Fill simulatedScores array with the result of the bid/play simulation.
+ */
 void DecisionPoint::simulateBid(int bid, int* simulatedScores){
     GameState * newGmSt = new GameState(*gmSt);
     DecisionPoint * newDPoint = nullptr;
@@ -221,7 +227,7 @@ void DecisionPoint::simulateBid(int bid, int* simulatedScores){
         newDPoint->findBestBid(); // simulate recursively to see what player would score with bid 'i'
     } else {
         newDPoint = new DecisionPoint(newGmSt);
-        newDPoint->findBestPlay();
+        newDPoint->simulatePlay();
     }
 
     for (int i = 0; i < gmSt->getNumPlyrs(); i++){
@@ -229,6 +235,10 @@ void DecisionPoint::simulateBid(int bid, int* simulatedScores){
     }
 }
 
+/*
+ * REPLACESCORES
+ * Array copy utility function function
+ */
 void DecisionPoint::replaceScores(int * simulationScores){
     for (int i = 0; i < gmSt->getNumPlyrs(); i++){
         scores[i] = simulationScores[i];
@@ -240,9 +250,15 @@ void DecisionPoint::replaceScores(int * simulationScores){
  * FINDING BEST CARD TO PLAY
  **********************************************************************************************************************/
 
-void DecisionPoint::simulatePlay(int *optimalPlayCount){
+/*
+ * FINDBESTPLAY
+ * Call to simulatePlay to recursively find the best card to play.
+ * Match that card up to its location in hero's hand and increment
+ * that index in optimalBidCount[] array.
+ */
+void DecisionPoint::findBestPlay(int *optimalPlayCount){
     DecisionPoint * newDPoint = new DecisionPoint(gmSt);
-    Card * optimalCard = newDPoint->findBestPlay();
+    Card * optimalCard = newDPoint->simulatePlay();
     if (!newDPoint->isTie()) { // If there wasn't a tie for best play
         for (int i = 0; i < gmSt->getCardsRemaining(); i++) {
             if (*optimalCard == *(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), i))) {
@@ -256,17 +272,22 @@ void DecisionPoint::simulatePlay(int *optimalPlayCount){
     optimalCard = nullptr;
 }
 
-
-Card* DecisionPoint::findBestPlay() {
+/*
+ * SIMULATEPLAY
+ * Loop through each of the remaining cards in a player's hand, playing each
+ * and recursively calling simulatePlay for the next player to act.
+ * Base case is when you get to the last round of play, since the order
+ * of cards played is determined at that point.
+ * At each base case, calculate the scores for each player, which are
+ * compared as you step back up the recursion, choosing the option that produces
+ * the max score for the player to act at each step of the recurion (or averaging the scores
+ * from multiple options if the player to act is indifferent between plays)
+ */
+Card* DecisionPoint::simulatePlay() {
     if (!gmSt->allHandsGenerated()){
         bool handsGenerated = genOpponentHands();
     }
-    return makePlay();
-}
 
-
-
-Card* DecisionPoint::makePlay(){
     int currBestCard = -1;
     int currPosition = gmSt->getNextToAct();
     std::vector<int> tempScores;
@@ -283,7 +304,7 @@ Card* DecisionPoint::makePlay(){
 
 	// Loop through all potential cards available
     for (int i = 0; i < gmSt->getCardsRemaining(); i++){
-		if (gmSt->isLastTrick()){ // base case
+		if (gmSt->isLastTrick()){ // BASE CASE
 		    currBestCard = i;
 		    // play out last round
             while (gmSt->getNextToAct() != -1){
@@ -300,18 +321,18 @@ Card* DecisionPoint::makePlay(){
             for (int j = 0; j < gmSt->getNumPlyrs(); j++){
                 gmSt->reversePlay();
             }
-		} else {
-            // if this returns true, then play has been made
-            // false means the play was invalid for some reason, so we just skip it and move to the next card
+		} else { // RECURSIVE CASE
             std::string tempCardStr = gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), i)->getCardStr();
             int plyrToAct = gmSt->getNextToAct();
+            // if the below playCard(i) call returns true, then play has been made
+            // false means the play was invalid for some reason, so we just skip it and move to the next card
             if ((gmSt->playCard(i))) {
                 for (int j = 0; j < gmSt->getNumPlyrs(); j++) {
                     tempScores[j] = scores[j];
                 }
 
-                Card * tempCardPlayed = makePlay();
-                delete tempCardPlayed; // Memory allocted in makePlay needs to be deleted
+                Card * tempCardPlayed = simulatePlay(); // RECURSIVE CALL FOR NEXT PLAYER
+                delete tempCardPlayed; // Memory allocted in simulatePlay needs to be deleted
 
                 tie = false;
 
@@ -327,7 +348,7 @@ Card* DecisionPoint::makePlay(){
                     tie = true;
                     tieCount++;
 
-                    // avg scores somehow (wtd average though, since tempScores can already be an average
+                    // avg scores from the plays that tie in expected points for player in question
                     for (int j = 0; j < gmSt->getNumPlyrs(); j++) {
                         scores[j] = (scores[j] + tieCount * tempScores[j]) / static_cast<double>(tieCount + 1);
                     }
@@ -348,8 +369,15 @@ Card* DecisionPoint::makePlay(){
  * GENERATING OPPONENT HANDS
  **********************************************************************************************************************/
 
-// Called within the first call to findBestPlay, so every player has a bid
-// and potentially some players have already played a card in the first round
+/*
+ * GENOPPONENTHANDS
+ * Called from findBestBid or from simulatePlay to populate opponent hands with
+ * random cards.
+ * Game may be in progress, but genOpponentHands will only generate the number of
+ * cards that are supposed to be remaining in a player's hand.
+ * For example, if the player in 1st position has played a card then genOpponentHands is called,
+ * That player's hand will be filled with one fewer card than all the others.
+ */
 bool DecisionPoint::genOpponentHands(){
     // Make gameState that is a reconstruction of the start of the current gmSt
     GameState * masterGmSt = reconstructGmStFromStart();
@@ -370,16 +398,31 @@ bool DecisionPoint::genOpponentHands(){
     return true;
 }
 
+/*
+ * FILLPLAYERHAND
+ * Determines what hand generation algorithm must be used, based on whether player has
+ * bid or not.
+ */
 void DecisionPoint::fillPlayerHand(GameState* masterGmSt, int plyrPosition){
     if (masterGmSt->getBid(plyrPosition) == -1){ // Player hasn't bid yet, so hand is totally random
         addRandomHand(masterGmSt, masterGmSt, plyrPosition);
-    } else {
+    } else { // Player has bid, so their hand has to be one that would ooptimally bid whatever they bid
         addHandToMatchBid(masterGmSt, plyrPosition);
     }
 }
 
-// Gen hand that matches bid already present in masterGmSt
-// i.e. make a hand where if a player were holding it, they would optimally bid whatever they have actually bid
+/*
+ * ADDHANDTOMATCHBID
+ * Generate hand that matches bid already present in masterGmSt
+ * i.e. make a hand where if a player were holding it,
+ * they would optimally bid whatever they have actually bid.
+ * Note: there is some extimation here for speed purposes. If a random
+ * hand is generated that is within 2 of the actual player bid, then
+ * the code loops a maximum of 10 more times to try to find a better (closer to
+ * the actual bid) hand. If a hand that would bid within 1 of the actual bid
+ * is found, a maximum of 5 more tries are done to try to find a better hand.
+ * So, in many cases, the ultimate hand used will be 1 or 2 off of what the player actually bid.
+ */
 void DecisionPoint::addHandToMatchBid(GameState * masterGmSt, int plyrPosition){
     GameState *indivGmSt = nullptr;
     DecisionPoint *newDPoint = nullptr;
@@ -418,8 +461,13 @@ void DecisionPoint::addHandToMatchBid(GameState * masterGmSt, int plyrPosition){
     }
 }
 
+/*
+ * SETNEWRANDOMHANDGMST
+ * Utility function to build a gamestate with actual bida dn generated hands for players in front of
+ * the one next to act and fully random hands for the player to act and anyone after the player.
+ */
 GameState* DecisionPoint::setNewRandomHandGmSt(int currPosition, GameState * masterGmSt){
-    // Make a copy of masterGameState, delete bids for player in question + any acting after player
+    // Make a copy of masterGameState
     GameState * indivGmSt = new GameState(masterGmSt->getNumPlyrs(), masterGmSt->getHeroPosition(),
                                           masterGmSt->getTotalCards(), masterGmSt->getFlippedCard());
     // For all players up to and including current position in question, copy over known cards in hand
@@ -438,7 +486,7 @@ GameState* DecisionPoint::setNewRandomHandGmSt(int currPosition, GameState * mas
         addRandomHand(indivGmSt, masterGmSt, j); // Adds hand that doesn't have cards prev used in indivGmSt or gmSt
     }
 
-    // Make sure that I've got gameState set on the correct player next to act before creating DecisionPoint
+    // For players in front of current player to act, set their bids
     for (int j = 0; j < currPosition; j++) {
         indivGmSt->makeBid(masterGmSt->getBid(j));
     }
@@ -446,6 +494,12 @@ GameState* DecisionPoint::setNewRandomHandGmSt(int currPosition, GameState * mas
     return indivGmSt;
 }
 
+/*
+ * RECONSTRUCTGMSTFROMSTART
+ * Utility function that takes a gamestate of a game in progress and makes
+ * a gamestate that matches how the game in progress would have looked after bidding
+ * but before any plays were made.
+ */
 GameState* DecisionPoint::reconstructGmStFromStart(){
     // Make a copy of gameState
     // To hold randomly generated hands that match bids (for all players, including hero)
@@ -468,6 +522,10 @@ GameState* DecisionPoint::reconstructGmStFromStart(){
     return startGmSt;
 }
 
+/*
+ * COPYOPPONENTHANDSTOGMST
+ * Utility function to copy all hands except for hero's hand into a passed in gamestate
+ */
 void DecisionPoint::copyOpponentHandsToGmSt(GameState * masterGmSt){
     for (int i = 0; i < gmSt->getNumPlyrs(); i++){
         if (i != gmSt->getHeroPosition()){
@@ -478,7 +536,13 @@ void DecisionPoint::copyOpponentHandsToGmSt(GameState * masterGmSt){
     }
 }
 
-
+/*
+ * ADDRANDOMHAND
+ * Mark what suits are invalid based on current state of game, then generate
+ * random suit (1 - 4) and random card value (1 - 13) until the random hand is one
+ * that is a valid suit and hasn't been used in the gamestate already.
+ * Add that hand to the GameState
+ */
 void DecisionPoint::addRandomHand(GameState * indivGmSt, GameState * masterGmSt, int position){
     bool validSuits[4] {true};
     bool validSuit = false;
@@ -510,6 +574,10 @@ void DecisionPoint::addRandomHand(GameState * indivGmSt, GameState * masterGmSt,
     }
 }
 
+/*
+ * CARDALREADYUSED
+ * Function to check if a card has been used in any of the three passed in gamestates.
+ */
 bool DecisionPoint::cardAlreadyUsed(
         GameState * gmSt, GameState * indivGmSt, GameState * masterGmSt, int cardVal, int cardSuit){
     if (gmSt->cardPrevUsed(cardVal, cardSuit)){
@@ -524,11 +592,13 @@ bool DecisionPoint::cardAlreadyUsed(
     return false;
 }
 
-
-// Function to mark suits that cannot be part of a player's generated random hand
-// The logic is that if a suit was led on a previous round and the player did not follow suit, then they cannot have any of that suit
-// So, the function checks the leading suit of each completed round, and if the player did not follow suit,
-// marks the leading suit of that round as invalid for card generation for future round simulation
+/*
+ * MARKINVALIDSUITS
+ * Function to mark suits that cannot be part of a player's generated random hand
+ * The logic is that if a suit was led on a previous round and the player did not follow suit, then they cannot have any of that suit
+ * So, the function checks the leading suit of each completed round, and if the player did not follow suit,
+ * marks the leading suit of that round as invalid for card generation for future round simulation
+ */
 void DecisionPoint::markInvalidSuits(int position, bool * validSuits){
     int round = 0;
 
@@ -546,6 +616,10 @@ void DecisionPoint::markInvalidSuits(int position, bool * validSuits){
     }
 }
 
+/*
+ * ISVALIDSUIT
+ * Returns whether the suit of a card is allowed per the specs of a validSuits array.
+ */
 bool DecisionPoint::isValidSuit(int cardSuit, bool * validSuits){
     if (validSuits[cardSuit - 1]){
         return true;

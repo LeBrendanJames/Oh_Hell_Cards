@@ -42,21 +42,21 @@ private:
     void replaceScores(int * simulationScores);
 
     // Finding best play to make
-    void simulatePlay(int * optimalPlayCount);
-    Card* findBestPlay();
-    Card* makePlay();
+    void findBestPlay(int * optimalPlayCount);
+    Card* simulatePlay();
 
     // Generating opponent hands for game simulation purposes
     bool genOpponentHands();
-    bool cardAlreadyUsed(GameState * gmSt, GameState * indivGmSt, GameState * masterGmSt, int cardVal, int cardSuit);
+	void fillPlayerHand(GameState* masterGmSt, int plyrPosition);
+    void addHandToMatchBid(GameState * masterGmSt, int plyrPosition);
+    GameState* setNewRandomHandGmSt(int currPosition, GameState * masterGmSt);
     GameState* reconstructGmStFromStart();
     void copyOpponentHandsToGmSt(GameState * masterGmSt);
-    GameState* setNewRandomHandGmSt(int currPosition, GameState * masterGmSt);
-    void fillPlayerHand(GameState* masterGmSt, int plyrPosition);
-    void addHandToMatchBid(GameState * masterGmSt, int plyrPosition);
+    void addRandomHand(GameState * indivGmSt, GameState * masterGmSt, int position);
+	bool cardAlreadyUsed(GameState * gmSt, GameState * indivGmSt, GameState * masterGmSt, int cardVal, int cardSuit);
     void markInvalidSuits(int position, bool * validSuits);
     bool isValidSuit(int cardSuit, bool * validSuits);
-    void addRandomHand(GameState * indivGmSt, GameState * masterGmSt, int position);
+
 };
 
 #endif //CARDS_DECISIONPOINT_H
