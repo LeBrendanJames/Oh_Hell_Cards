@@ -38,8 +38,8 @@ private:
 
 	// Finding best bid to make
     int findBestBid();
-    void simulateBid(int bid, int* simulationScores);
-    void replaceScores(int * simulationScores);
+    void simulateBid(int bid, double* simulationScores);
+    void replaceScores(double * simulationScores);
 
     // Finding best play to make
     void findBestPlay(int * optimalPlayCount);

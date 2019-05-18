@@ -58,10 +58,11 @@ int DecisionPoint::recommendBid() {
            !statSignificantResult(optimalBidCount, gmSt->getTotalCards() + 1)){
         for (int i = 0; i < runChunk; i++) {
             newDPoint = new DecisionPoint(gmSt);
-
+            //std::cout << "About to call findBestBid" << std::endl;
+            //std::cout << "numPlyrs: " << gmSt->getNumPlyrs() << std::endl;
             tempBid = newDPoint->findBestBid();
             optimalBidCount[tempBid]++;
-
+            //std::cout << "Done with one sim." << std::endl;
             delete newDPoint;
         }
         totalRuns += runChunk;
@@ -177,34 +178,55 @@ int DecisionPoint::secondLargestElement(int * optimalCountArr, int size){
  */
 int DecisionPoint::findBestBid(){
 	int optimalBid = -1;
-    int simulationScores[gmSt->getNumPlyrs()];
+    double simulationScores[gmSt->getNumPlyrs()];
     for (int i = 0; i < gmSt->getNumPlyrs(); i++){
         simulationScores[i] = -1;
     }
 
+    //std::cout << "In findBestBid" << std::endl;
+
 	// Generate random hands for all opponents
     if (!gmSt->allHandsGenerated()) {
+        //std::cout << "About to call genOpponentHands" << std::endl;
         genOpponentHands();
-    }
+        //std::cout << "Through genOpponentHands. Hands are:" << std::endl;
+        for (int i = 0; i < gmSt->getNumPlyrs(); i++){
+            //std::cout << "Player #" << i << ": ";
+            //for (int j = 0; j < gmSt->getTotalCards(); j++){
+            //    std::cout << gmSt->getCardFromPlyrHands(i, j)->getCardStr() << " ";
+            //}
+            //std::cout << std::endl;
+        }
+    } //else {
+        //std::cout << "Skipping genOpponentHands" << std::endl;
+    //}
+
+
 
     int i = gmSt->getTotalCards(); // max possible bid
+    if (gmSt->getBid(gmSt->getNextToAct()) != -1){
+        i = 0;
+    }
     // Loop will cut out early if the amount bid results in the player getting more the
     // points than the max if he were to bid lower. Obviously if you can get more than the
     // max of lower bids, you're not going to bid any lower.
     while (i >= 0 && scores[this->position] <= BID_CORRECT_BONUS + i - 1){
+        //std::cout << "Back to top, now bidding " << i << std::endl;
         simulateBid(i, simulationScores);
-
+        //std::cout << "Simulated bid. i was " << i << std::endl;
         if (simulationScores[this->position] > scores[this->position]){
             optimalBid = i;
             replaceScores(simulationScores);
         }
-
+        //std::cout << "Decrementing i" << std::endl;
         i--;
 
+        /*
         // Don't need to loop through all possible bids for a position where user entered a bid
         if (gmSt->getBid(gmSt->getNextToAct()) == -1){
             break;
         }
+         */
 	}
 
 	return optimalBid;
@@ -217,29 +239,39 @@ int DecisionPoint::findBestBid(){
  * simulatePlay()
  * Fill simulatedScores array with the result of the bid/play simulation.
  */
-void DecisionPoint::simulateBid(int bid, int* simulatedScores){
+void DecisionPoint::simulateBid(int bid, double* simulatedScores){
+    //std::cout << "In simulateBid" << std::endl;
     GameState * newGmSt = new GameState(*gmSt);
     DecisionPoint * newDPoint = nullptr;
 
     if (gmSt->getBid(gmSt->getNextToAct()) == -1) { // if nextToAct has not bid
+        //std::cout << "Making new bid of " << bid << std::endl;
         newGmSt->makeBid(bid); // make bid for next to act
         newDPoint = new DecisionPoint(newGmSt); // put gameState in decisionpoint
         newDPoint->findBestBid(); // simulate recursively to see what player would score with bid 'i'
     } else {
         newDPoint = new DecisionPoint(newGmSt);
+        //std::cout << "Going into simulatePlay. Bids: ";
+        //for (int i = 0; i < newGmSt->getNumPlyrs(); i++){
+        //    std::cout << newGmSt->getBid(i) << ", ";
+        //}
+        //std::cout << std::endl;
         newDPoint->simulatePlay();
     }
 
+    //std::cout << "simulatedScores: ";
     for (int i = 0; i < gmSt->getNumPlyrs(); i++){
         simulatedScores[i] = newDPoint->getScore(i);
+        //std::cout << simulatedScores[i] << ", ";
     }
+    //std::cout << std::endl;
 }
 
 /*
  * REPLACESCORES
  * Array copy utility function function
  */
-void DecisionPoint::replaceScores(int * simulationScores){
+void DecisionPoint::replaceScores(double * simulationScores){
     for (int i = 0; i < gmSt->getNumPlyrs(); i++){
         scores[i] = simulationScores[i];
     }
@@ -381,11 +413,13 @@ Card* DecisionPoint::simulatePlay() {
 bool DecisionPoint::genOpponentHands(){
     // Make gameState that is a reconstruction of the start of the current gmSt
     GameState * masterGmSt = reconstructGmStFromStart();
-
+    //std::cout << "Reconstructed gameState" << std::endl;
     // For each player, produce a hand that matches their bid and copy it in to masterGmSt
     for (int i = 0; i < gmSt->getNumPlyrs(); i++) {
         fillPlayerHand(masterGmSt, i);
+        //std::cout << "Through fillPlayerHand with i = " << i << std::endl;
     }
+    //std::cout << "Through filling player hands" << std::endl;
 
     // Copy those generated hands back into the original gmSt
     copyOpponentHandsToGmSt(masterGmSt);
@@ -407,6 +441,7 @@ void DecisionPoint::fillPlayerHand(GameState* masterGmSt, int plyrPosition){
     if (masterGmSt->getBid(plyrPosition) == -1){ // Player hasn't bid yet, so hand is totally random
         addRandomHand(masterGmSt, masterGmSt, plyrPosition);
     } else { // Player has bid, so their hand has to be one that would ooptimally bid whatever they bid
+        //std::cout << "About to call addHandToMatchBid" << std::endl;
         addHandToMatchBid(masterGmSt, plyrPosition);
     }
 }
@@ -432,17 +467,60 @@ void DecisionPoint::addHandToMatchBid(GameState * masterGmSt, int plyrPosition){
 
     do {
         indivGmSt = setNewRandomHandGmSt(plyrPosition, masterGmSt);
+        /*
+        std::cout << "masterGmSt:" << std::endl;
+        std::cout << "Bids: ";
+        for (int i = 0; i < masterGmSt->getNumPlyrs(); i++){
+            std::cout << masterGmSt->getBid(i) << ", ";
+        }
+        std::cout << std::endl;
+        for (int i = 0; i < masterGmSt->getNumPlyrs(); i++){
+            std::cout << "Player #" << i << ": ";
+            for (int j = 0; j < masterGmSt->getTotalCards(); j++){
+                if (masterGmSt->getCardFromPlyrHands(i, j) != nullptr){
+                    std::cout << masterGmSt->getCardFromPlyrHands(i, j)->getCardStr() << " ";
+                } else {
+                    std::cout << "-- ";
+                }
+            }
+            std::cout << std::endl;
+        }
+
+        std::cout << "indivGmSt:" << std::endl;
+        std::cout << "Bids: ";
+        for (int i = 0; i < indivGmSt->getNumPlyrs(); i++){
+            std::cout << indivGmSt->getBid(i) << ", ";
+        }
+        std::cout << std::endl;
+        for (int i = 0; i < indivGmSt->getNumPlyrs(); i++){
+            std::cout << "Player #" << i << ": ";
+            for (int j = 0; j < indivGmSt->getTotalCards(); j++){
+                if (indivGmSt->getCardFromPlyrHands(i, j) != nullptr){
+                    std::cout << indivGmSt->getCardFromPlyrHands(i, j)->getCardStr() << " ";
+                } else {
+                    std::cout << "-- ";
+                }
+            }
+            std::cout << std::endl;
+        }
+         */
+
 
         // Make a decisionPoint with that and check that the bid from that player would be correct
         newDPoint = new DecisionPoint(indivGmSt);
+        //int tempBidFind = newDPoint->findBestBid();
+        //std::cout << "tempBidFind: " << tempBidFind << ", masterGmSt bid: " << masterGmSt->getBid(plyrPosition) << std::endl;
+        //int bidDiff = abs(tempBidFind - masterGmSt->getBid(plyrPosition));
+        //std::cout << "bidDiff: " << bidDiff << std::endl;
         int bidDiff = abs(newDPoint->findBestBid() - masterGmSt->getBid(plyrPosition));
-
         if (bidDiff == 0){
             handGenerated = true;
         } else if (bidDiff <= 2){
             noMatchRemaining--;
             noMatchRemaining = std::min(noMatchRemaining, bidDiff * 5);
-        }
+        } //else {
+            //noMatchRemaining--;
+        //}
         // Save hand
         tempBestHand.clear();
         for (int j = 0; j < indivGmSt->getTotalCards(); j++){
