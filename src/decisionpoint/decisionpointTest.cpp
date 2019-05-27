@@ -189,6 +189,7 @@ int main(){
         testsPassed++;
     } else {
         std::cout << "TEST: Optimal Bid with Ah/2h (trump Hearts) == 2 - FAILED" << std::endl;
+        std::cout << "Actual recommendation = " << optimalBid << std::endl;
         testsFailed++;
     }
     delete dPoint;
@@ -236,7 +237,7 @@ int main(){
 
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
-    std::cout << "Total time (seconds): " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << std::endl;
+    std::cout << "Total time (ms): " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << std::endl;
 
 
 

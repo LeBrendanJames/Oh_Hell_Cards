@@ -31,6 +31,7 @@ private:
 	std::vector<double> scores;
 	GameState * gmSt;
 	bool tie;
+	double ** bonusProb;
 
 	// Helpers to loop through random games until result is returned
     bool statSignificantResult(int * optimalBidCount, int size);
@@ -38,12 +39,10 @@ private:
 
 	// Finding best bid to make
     int findBestBid();
-    void simulateBid(int bid, double* simulationScores);
-    void replaceScores(double * simulationScores);
 
     // Finding best play to make
     void findBestPlay(int * optimalPlayCount);
-    Card* simulatePlay();
+    Card* simulatePlay(bool bidFlag);
 
     // Generating opponent hands for game simulation purposes
     bool genOpponentHands();

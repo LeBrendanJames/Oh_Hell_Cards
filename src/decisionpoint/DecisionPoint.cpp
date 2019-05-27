@@ -7,9 +7,21 @@ DecisionPoint::DecisionPoint(GameState *currGmSt){
 	}
 	gmSt = new GameState(*currGmSt); // Gamestate copied when decisionPoint constructed
     tie = false;
+
+    bonusProb = new double*[currGmSt->getNumPlyrs()];
+    for (int i = 0; i < currGmSt->getNumPlyrs(); i++){
+        bonusProb[i] = new double[currGmSt->getTotalCards() + 1];
+        for (int j = 0; j < currGmSt->getTotalCards() + 1; j++){
+            bonusProb[i][j] = 0.0;
+        }
+    }
 }
 
 DecisionPoint::~DecisionPoint(){
+    for (int i = 0; i < gmSt->getNumPlyrs(); i++){
+        delete [] bonusProb[i];
+    }
+    delete [] bonusProb;
 	delete gmSt;
 }
 
@@ -58,11 +70,8 @@ int DecisionPoint::recommendBid() {
            !statSignificantResult(optimalBidCount, gmSt->getTotalCards() + 1)){
         for (int i = 0; i < runChunk; i++) {
             newDPoint = new DecisionPoint(gmSt);
-            //std::cout << "About to call findBestBid" << std::endl;
-            //std::cout << "numPlyrs: " << gmSt->getNumPlyrs() << std::endl;
             tempBid = newDPoint->findBestBid();
             optimalBidCount[tempBid]++;
-            //std::cout << "Done with one sim." << std::endl;
             delete newDPoint;
         }
         totalRuns += runChunk;
@@ -178,103 +187,26 @@ int DecisionPoint::secondLargestElement(int * optimalCountArr, int size){
  */
 int DecisionPoint::findBestBid(){
 	int optimalBid = -1;
-    double simulationScores[gmSt->getNumPlyrs()];
-    for (int i = 0; i < gmSt->getNumPlyrs(); i++){
-        simulationScores[i] = -1;
-    }
-
-    //std::cout << "In findBestBid" << std::endl;
 
 	// Generate random hands for all opponents
     if (!gmSt->allHandsGenerated()) {
-        //std::cout << "About to call genOpponentHands" << std::endl;
         genOpponentHands();
-        //std::cout << "Through genOpponentHands. Hands are:" << std::endl;
-        for (int i = 0; i < gmSt->getNumPlyrs(); i++){
-            //std::cout << "Player #" << i << ": ";
-            //for (int j = 0; j < gmSt->getTotalCards(); j++){
-            //    std::cout << gmSt->getCardFromPlyrHands(i, j)->getCardStr() << " ";
-            //}
-            //std::cout << std::endl;
-        }
-    } //else {
-        //std::cout << "Skipping genOpponentHands" << std::endl;
-    //}
-
-
-
-    int i = gmSt->getTotalCards(); // max possible bid
-    if (gmSt->getBid(gmSt->getNextToAct()) != -1){
-        i = 0;
     }
-    // Loop will cut out early if the amount bid results in the player getting more the
-    // points than the max if he were to bid lower. Obviously if you can get more than the
-    // max of lower bids, you're not going to bid any lower.
-    while (i >= 0 && scores[this->position] <= BID_CORRECT_BONUS + i - 1){
-        //std::cout << "Back to top, now bidding " << i << std::endl;
-        simulateBid(i, simulationScores);
-        //std::cout << "Simulated bid. i was " << i << std::endl;
-        if (simulationScores[this->position] > scores[this->position]){
-            optimalBid = i;
-            replaceScores(simulationScores);
-        }
-        //std::cout << "Decrementing i" << std::endl;
-        i--;
 
-        /*
-        // Don't need to loop through all possible bids for a position where user entered a bid
-        if (gmSt->getBid(gmSt->getNextToAct()) == -1){
-            break;
+    while (gmSt->getBid(gmSt->getNextToAct()) == -1){
+        gmSt->makeBid(0);
+    }
+
+    simulatePlay(true);
+
+    optimalBid = 0;
+    for (int i = 1; i < gmSt->getTotalCards() + 1; i++){
+        if (bonusProb[position][i] > bonusProb[position][optimalBid]){
+            optimalBid = i;
         }
-         */
-	}
+    }
 
 	return optimalBid;
-}
-
-/*
- * SIMULATEBID
- * Take a gamestate. If the nextToAct player is yet to bid, make the bid
- * passed in for them. Otherwise, drop down into making plays recursively in
- * simulatePlay()
- * Fill simulatedScores array with the result of the bid/play simulation.
- */
-void DecisionPoint::simulateBid(int bid, double* simulatedScores){
-    //std::cout << "In simulateBid" << std::endl;
-    GameState * newGmSt = new GameState(*gmSt);
-    DecisionPoint * newDPoint = nullptr;
-
-    if (gmSt->getBid(gmSt->getNextToAct()) == -1) { // if nextToAct has not bid
-        //std::cout << "Making new bid of " << bid << std::endl;
-        newGmSt->makeBid(bid); // make bid for next to act
-        newDPoint = new DecisionPoint(newGmSt); // put gameState in decisionpoint
-        newDPoint->findBestBid(); // simulate recursively to see what player would score with bid 'i'
-    } else {
-        newDPoint = new DecisionPoint(newGmSt);
-        //std::cout << "Going into simulatePlay. Bids: ";
-        //for (int i = 0; i < newGmSt->getNumPlyrs(); i++){
-        //    std::cout << newGmSt->getBid(i) << ", ";
-        //}
-        //std::cout << std::endl;
-        newDPoint->simulatePlay();
-    }
-
-    //std::cout << "simulatedScores: ";
-    for (int i = 0; i < gmSt->getNumPlyrs(); i++){
-        simulatedScores[i] = newDPoint->getScore(i);
-        //std::cout << simulatedScores[i] << ", ";
-    }
-    //std::cout << std::endl;
-}
-
-/*
- * REPLACESCORES
- * Array copy utility function function
- */
-void DecisionPoint::replaceScores(double * simulationScores){
-    for (int i = 0; i < gmSt->getNumPlyrs(); i++){
-        scores[i] = simulationScores[i];
-    }
 }
 
 
@@ -290,7 +222,7 @@ void DecisionPoint::replaceScores(double * simulationScores){
  */
 void DecisionPoint::findBestPlay(int *optimalPlayCount){
     DecisionPoint * newDPoint = new DecisionPoint(gmSt);
-    Card * optimalCard = newDPoint->simulatePlay();
+    Card * optimalCard = newDPoint->simulatePlay(false);
     if (!newDPoint->isTie()) { // If there wasn't a tie for best play
         for (int i = 0; i < gmSt->getCardsRemaining(); i++) {
             if (*optimalCard == *(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), i))) {
@@ -315,7 +247,7 @@ void DecisionPoint::findBestPlay(int *optimalPlayCount){
  * the max score for the player to act at each step of the recurion (or averaging the scores
  * from multiple options if the player to act is indifferent between plays)
  */
-Card* DecisionPoint::simulatePlay() {
+Card* DecisionPoint::simulatePlay(bool bidFlag) {
     if (!gmSt->allHandsGenerated()){
         bool handsGenerated = genOpponentHands();
     }
@@ -332,7 +264,19 @@ Card* DecisionPoint::simulatePlay() {
         scores[i] = -1;
     }
 
-    int tieCount = 0;
+    int tieCount = 0, bidTieCount = 0;
+
+    double ** tempBonusProb = nullptr;
+    if (bidFlag && !gmSt->isLastTrick()){
+        // allocate memory
+        tempBonusProb = new double*[gmSt->getNumPlyrs()];
+        for (int i = 0; i < gmSt->getNumPlyrs(); i++){
+            tempBonusProb[i] = new double[gmSt->getTotalCards() + 1];
+            for (int j = 0; j < gmSt->getTotalCards() + 1; j++){
+                tempBonusProb[i][j] = 0.0;
+            }
+        }
+    }
 
 	// Loop through all potential cards available
     for (int i = 0; i < gmSt->getCardsRemaining(); i++){
@@ -340,12 +284,23 @@ Card* DecisionPoint::simulatePlay() {
 		    currBestCard = i;
 		    // play out last round
             while (gmSt->getNextToAct() != -1){
+                //std::cout << "Playing card: " << gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), 0)->getCardStr() << std::endl;
                 gmSt->playCard(0);
             }
             gmSt->calcFinalScores();
             if (gmSt->getFinalScore(currPosition) > scores[currPosition]){
                 for (int j = 0; j < gmSt->getNumPlyrs(); j++) {
                     scores[j] = gmSt->getFinalScore(j);
+                }
+            }
+
+            if (bidFlag){
+                for (int j = 0; j < gmSt->getNumPlyrs(); j++){
+                    for (int k = 0; k < gmSt->getTotalCards() + 1; k++){
+                        bonusProb[j][k] = 0;
+                    }
+                    // 100% chance of getting whatever # of tricks the player ends up with (base case)
+                    bonusProb[j][gmSt->getFinalScore(j) % BID_CORRECT_BONUS] = 1.0;
                 }
             }
 
@@ -359,11 +314,24 @@ Card* DecisionPoint::simulatePlay() {
             // if the below playCard(i) call returns true, then play has been made
             // false means the play was invalid for some reason, so we just skip it and move to the next card
             if ((gmSt->playCard(i))) {
+                //std::cout << "Playing card: " << tempCardStr << std::endl;
                 for (int j = 0; j < gmSt->getNumPlyrs(); j++) {
                     tempScores[j] = scores[j];
                 }
 
-                Card * tempCardPlayed = simulatePlay(); // RECURSIVE CALL FOR NEXT PLAYER
+                if (bidFlag) {
+                    for (int j = 0; j < gmSt->getNumPlyrs(); j++) {
+                        for (int k = 0; k < gmSt->getTotalCards() + 1; k++) {
+                            if (i > 0) {
+                                tempBonusProb[j][k] = bonusProb[j][k];
+                            } else {
+                                tempBonusProb[j][k] = 0;
+                            }
+                        }
+                    }
+                }
+
+                Card * tempCardPlayed = simulatePlay(bidFlag); // RECURSIVE CALL FOR NEXT PLAYER
                 delete tempCardPlayed; // Memory allocted in simulatePlay needs to be deleted
 
                 tie = false;
@@ -385,10 +353,71 @@ Card* DecisionPoint::simulatePlay() {
                         scores[j] = (scores[j] + tieCount * tempScores[j]) / static_cast<double>(tieCount + 1);
                     }
                 }
+
+
+                if (bidFlag) {
+                    // For the position in question (currPosition):
+                    // If one option is clearly better than the other, then they take that and the entire 2D array becomes the one
+                    // If there is a mix, then we take the average of the two 2d arrays
+                    // Criteria for 'clearly better'
+                    // 80% chance at 0 better than 50% chance at 1
+                    // So, BID_CORRECT_BONUS * highest probability, whichever is greater
+                    // If they tie, whichever is for the greater bid
+                    // i.e. 50% chace at 1 better than 50% chance at 0
+                    // If both of those tie, then we have a real tie and just average
+                    double maxBonusProb = 0.0, maxTempBonusProb = 0.0;
+                    int maxBonusProbIdx = 0, maxTempBonusProbIdx = 0;
+                    for (int j = 0; j < gmSt->getTotalCards() + 1; j++) {
+                        if (BID_CORRECT_BONUS * bonusProb[currPosition][j] >= maxBonusProb) {
+                            maxBonusProb = BID_CORRECT_BONUS * bonusProb[currPosition][j];
+                            maxBonusProbIdx = j;
+                        }
+                        if (BID_CORRECT_BONUS * tempBonusProb[currPosition][j] >= maxTempBonusProb) {
+                            maxTempBonusProb = BID_CORRECT_BONUS * tempBonusProb[currPosition][j];
+                            maxTempBonusProbIdx = j;
+                        }
+                    }
+
+                    // TODO: add in check for if probs are equal but one is for a higher bid
+                    if (maxTempBonusProb > maxBonusProb) {
+                        // copy temp into actual
+                        for (int j = 0; j < gmSt->getNumPlyrs(); j++) {
+                            for (int k = 0; k < gmSt->getTotalCards() + 1; k++) {
+                                bonusProb[j][k] = tempBonusProb[j][k];
+                            }
+                        }
+                    } else if (abs(maxTempBonusProb - maxBonusProb) < 0.001 && maxBonusProbIdx < maxTempBonusProbIdx){
+                        // copy temp into actual
+                        for (int j = 0; j < gmSt->getNumPlyrs(); j++) {
+                            for (int k = 0; k < gmSt->getTotalCards() + 1; k++) {
+                                bonusProb[j][k] = tempBonusProb[j][k];
+                            }
+                        }
+                    } else if (abs(maxTempBonusProb - maxBonusProb) < 0.001 && maxBonusProbIdx == maxTempBonusProbIdx) {
+                        // average
+                        bidTieCount++;
+                        for (int j = 0; j < gmSt->getNumPlyrs(); j++) {
+                            for (int k = 0; k < gmSt->getTotalCards() + 1; k++) {
+                                bonusProb[j][k] = (bonusProb[j][k] + bidTieCount * tempBonusProb[j][k])
+                                                  / static_cast<double>(bidTieCount + 1);
+                            }
+                        }
+                    }
+                }
+
+
                 gmSt->reversePlay();
             }
         }
 	}
+
+	if (bidFlag && !gmSt->isLastTrick()){
+        // delete tempBonusProb
+        for (int i = 0; i < gmSt->getNumPlyrs(); i++){
+            delete [] tempBonusProb[i];
+        }
+        delete [] tempBonusProb;
+    }
 
 	// As cards are played and plays reversed, the order of cards in a player's hand is reversed
     // So, position of card i is at getCardsRemaining() - original position - 1
