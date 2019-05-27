@@ -230,6 +230,22 @@ bool GameState::addCardToPlyrHand(int playerPos, std::string cardToAdd) {
     return validCard && cardAdded;
 }
 
+bool GameState::addCardToPlyrHand(int playerPos, int val, int suit){
+    bool validCard = !cardPrevUsed(val, suit);
+
+    bool cardAdded = false;
+    int i = 0;
+    while (validCard && !cardAdded && i < numCardsRemaining){
+        if (plyrHands[playerPos][i] == nullptr){
+            plyrHands[playerPos][i] = new Card(val, suit);
+            cardAdded = true;
+        }
+        i++;
+    }
+
+    return validCard && cardAdded;
+}
+
 
 
 /**********************************************************************************************************************

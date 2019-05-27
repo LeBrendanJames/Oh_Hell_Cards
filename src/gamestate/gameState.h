@@ -34,7 +34,8 @@ public:
 
 	// SETTERS
     void setBid(int position, int bid);
-    bool addCardToPlyrHand(int player, std::string card);
+    bool addCardToPlyrHand(int playerPos, std::string card);
+    bool addCardToPlyrHand(int playerPos, int val, int suit);
 
 	// GAMEPLAY PUBLIC FUNCTIONS
 	bool makeBid(int bid);
