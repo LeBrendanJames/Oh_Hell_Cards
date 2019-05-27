@@ -199,14 +199,18 @@ int DecisionPoint::findBestBid(){
 
     simulatePlay(true);
 
-    optimalBid = 0;
-    for (int i = 1; i < gmSt->getTotalCards() + 1; i++){
-        if (bonusProb[position][i] > bonusProb[position][optimalBid]){
-            optimalBid = i;
-        }
-    }
+    //optimalBid = 0;
+    //for (int i = 1; i < gmSt->getTotalCards() + 1; i++){
+    //    if (bonusProb[position][i] > bonusProb[position][optimalBid]){
+    //        optimalBid = i;
+    //    }
+    //}
 
-	return optimalBid;
+	//return optimalBid;
+
+    // return index of max element in bonusProb array
+    return std::distance(bonusProb[position],
+                         std::max_element(&bonusProb[position][0], &bonusProb[position][gmSt->getTotalCards() + 1]));
 }
 
 
@@ -491,7 +495,7 @@ void DecisionPoint::addHandToMatchBid(GameState * masterGmSt, int plyrPosition){
     GameState *indivGmSt = nullptr;
     DecisionPoint *newDPoint = nullptr;
     int noMatchRemaining = 30;
-    bool handGenerated = false;
+    bool handGenerated = false, newHand = false;
     std::vector<std::string> tempBestHand;
 
     do {
@@ -542,18 +546,26 @@ void DecisionPoint::addHandToMatchBid(GameState * masterGmSt, int plyrPosition){
         //int bidDiff = abs(tempBidFind - masterGmSt->getBid(plyrPosition));
         //std::cout << "bidDiff: " << bidDiff << std::endl;
         int bidDiff = abs(newDPoint->findBestBid() - masterGmSt->getBid(plyrPosition));
+        newHand = false;
         if (bidDiff == 0){
             handGenerated = true;
+            newHand = true;
         } else if (bidDiff <= 2){
             noMatchRemaining--;
             noMatchRemaining = std::min(noMatchRemaining, bidDiff * 5);
-        } //else {
-            //noMatchRemaining--;
-        //}
+            newHand = true;
+        } else {
+            if (noMatchRemaining == 30){
+                newHand = true;
+            }
+            noMatchRemaining--;
+        }
         // Save hand
-        tempBestHand.clear();
-        for (int j = 0; j < indivGmSt->getTotalCards(); j++){
-            tempBestHand.push_back(indivGmSt->getCardFromPlyrHands(plyrPosition, j)->getCardStr());
+        if (newHand) {
+            tempBestHand.clear();
+            for (int j = 0; j < indivGmSt->getTotalCards(); j++) {
+                tempBestHand.push_back(indivGmSt->getCardFromPlyrHands(plyrPosition, j)->getCardStr());
+            }
         }
         // Reset indivGmSt and newDPoint
         delete indivGmSt;
@@ -672,11 +684,7 @@ void DecisionPoint::addRandomHand(GameState * indivGmSt, GameState * masterGmSt,
                      !isValidSuit(cardSuit, validSuits));
 
             // Add to plyrHands array
-            Card *cardToAdd = new Card(cardVal, cardSuit);
-            indivGmSt->addCardToPlyrHand(position, cardToAdd->getCardStr());
-
-            delete cardToAdd;
-            cardToAdd = nullptr;
+            indivGmSt->addCardToPlyrHand(position, cardVal, cardSuit);
         }
     }
 }
