@@ -67,7 +67,7 @@ GameState* buildCurrGmStFromUser(){
     // Get all game specs (through dealing of cards)
     getIntWithValidation("How many players are in the game?", numPlyrs, 2, 8);
     getIntWithValidation("What position is Hero in (1 - " + std::to_string(numPlyrs) + ")?", heroPosition, 1, numPlyrs);
-    getIntWithValidation("How many cards are in the round?", totalCards, 1, 51 % numPlyrs);
+    getIntWithValidation("How many cards are in the round?", totalCards, 1, 51 / numPlyrs);
     getCardWithValidation("What is the flipped card in the middle representing trump?", inputFlippedCard);
     Card * flippedCard = new Card(inputFlippedCard);
     Card ** heroHand = gatherHeroHand(totalCards);
