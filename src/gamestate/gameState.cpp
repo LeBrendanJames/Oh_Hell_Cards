@@ -192,6 +192,19 @@ int GameState::getFinalScore(int plyrPosiiton){
     return finalScores[plyrPosiiton];
 }
 
+int GameState::getNumCardsPlayed(){
+    int numCards = 0;
+    for (int i = 0; i < totalCards; i++){
+        for (int j = 0; j < numPlyrs; j++){
+            if (plydCrds[i][j] != nullptr){
+                numCards++;
+            }
+        }
+    }
+
+    return numCards;
+}
+
 Card * GameState::getCardFromPlyrHands(int player, int cardPosition){
     return plyrHands[player][cardPosition];
 }

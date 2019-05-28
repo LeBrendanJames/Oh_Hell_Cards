@@ -27,6 +27,7 @@ public:
     int getBid(int position);
     int getRoundLead(int roundNum);
     int getFinalScore(int plyrPosiiton);
+    int getNumCardsPlayed();
     // getters for individual card in arrays
     Card * getCardFromPlyrHands(int player, int cardPosition);
     Card * getCardFromPlydCrds(int round, int position);
