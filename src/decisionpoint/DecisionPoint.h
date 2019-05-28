@@ -32,6 +32,7 @@ private:
 	GameState * gmSt;
 	bool tie;
 	double ** bonusProb;
+	double ** tempBonusProbs;
 
 	// Helpers to loop through random games until result is returned
     bool statSignificantResult(int * optimalBidCount, int size);

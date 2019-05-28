@@ -15,6 +15,17 @@ DecisionPoint::DecisionPoint(GameState *currGmSt){
             bonusProb[i][j] = 0.0;
         }
     }
+
+    //std::cout << "numPlyrs: " << currGmSt->getNumPlyrs() << ", totalCards: " << currGmSt->getTotalCards() << std::endl;
+    //std::cout << "Allocating " << currGmSt->getNumPlyrs() * (currGmSt->getTotalCards() - 1);
+    //std::cout << " rows for tempBonusProbs" << std::endl;
+    tempBonusProbs = new double*[currGmSt->getNumPlyrs() * currGmSt->getNumPlyrs() * (currGmSt->getTotalCards() - 1)];
+    for (int i = 0; i < currGmSt->getNumPlyrs() * currGmSt->getNumPlyrs() * (currGmSt->getTotalCards() - 1); i++){
+        tempBonusProbs[i] = new double[currGmSt->getTotalCards() + 1];
+        for (int j = 0; j < currGmSt->getTotalCards() + 1; j++){
+            tempBonusProbs[i][j] = 0.0;
+        }
+    }
 }
 
 DecisionPoint::~DecisionPoint(){
@@ -22,6 +33,10 @@ DecisionPoint::~DecisionPoint(){
         delete [] bonusProb[i];
     }
     delete [] bonusProb;
+    for (int i = 0; i < gmSt->getNumPlyrs() * gmSt->getNumPlyrs() * (gmSt->getTotalCards() - 1); i++){
+        delete [] tempBonusProbs[i];
+    }
+    delete [] tempBonusProbs;
 	delete gmSt;
 }
 
@@ -226,8 +241,11 @@ int DecisionPoint::findBestBid(){
  */
 void DecisionPoint::findBestPlay(int *optimalPlayCount){
     DecisionPoint * newDPoint = new DecisionPoint(gmSt);
+    //tie = false;
     Card * optimalCard = newDPoint->simulatePlay(false);
+    //Card * optimalCard = simulatePlay(false);
     if (!newDPoint->isTie()) { // If there wasn't a tie for best play
+    //if (!tie){
         for (int i = 0; i < gmSt->getCardsRemaining(); i++) {
             if (*optimalCard == *(gmSt->getCardFromPlyrHands(gmSt->getNextToAct(), i))) {
                 optimalPlayCount[i]++;
@@ -270,17 +288,17 @@ Card* DecisionPoint::simulatePlay(bool bidFlag) {
 
     int tieCount = 0, bidTieCount = 0;
 
-    double ** tempBonusProb = nullptr;
-    if (bidFlag && !gmSt->isLastTrick()){
-        // allocate memory
-        tempBonusProb = new double*[gmSt->getNumPlyrs()];
-        for (int i = 0; i < gmSt->getNumPlyrs(); i++){
-            tempBonusProb[i] = new double[gmSt->getTotalCards() + 1];
-            for (int j = 0; j < gmSt->getTotalCards() + 1; j++){
-                tempBonusProb[i][j] = 0.0;
-            }
-        }
-    }
+    //double ** tempBonusProb = nullptr;
+    //if (bidFlag && !gmSt->isLastTrick()){
+    //    // allocate memory
+    //    tempBonusProb = new double*[gmSt->getNumPlyrs()];
+    //    for (int i = 0; i < gmSt->getNumPlyrs(); i++){
+    //        tempBonusProb[i] = new double[gmSt->getTotalCards() + 1];
+    //        for (int j = 0; j < gmSt->getTotalCards() + 1; j++){
+    //            tempBonusProb[i][j] = 0.0;
+    //        }
+    //    }
+    //}
 
 	// Loop through all potential cards available
     for (int i = 0; i < gmSt->getCardsRemaining(); i++){
@@ -324,12 +342,24 @@ Card* DecisionPoint::simulatePlay(bool bidFlag) {
                 }
 
                 if (bidFlag) {
+                    //std::cout << "In bidFlag loop #1" << std::endl;
+                    int numCardsPlayed = gmSt->getNumCardsPlayed();
+                    //std::cout << "numCardsPlayed = " << numCardsPlayed << std::endl;
                     for (int j = 0; j < gmSt->getNumPlyrs(); j++) {
+                        //std::cout << "j = " << j << std::endl;
                         for (int k = 0; k < gmSt->getTotalCards() + 1; k++) {
                             if (i > 0) {
-                                tempBonusProb[j][k] = bonusProb[j][k];
+                                //std::cout << "About to access tempBonusProbs at [";
+                                //std::cout << (numCardsPlayed - 1) * gmSt->getNumPlyrs() + j << "][";
+                                //std::cout << k << "]" << std::endl;
+                                tempBonusProbs[(numCardsPlayed - 1) * gmSt->getNumPlyrs() + j][k] = bonusProb[j][k];
+                                //std::cout << "Done accessing tempBonusProbs" << std::endl;
                             } else {
-                                tempBonusProb[j][k] = 0;
+                                //std::cout << "About to access tempBonusProbs at [";
+                                //std::cout << (numCardsPlayed - 1) * gmSt->getNumPlyrs() + j << "][";
+                                //std::cout << k << "]" << std::endl;
+                                tempBonusProbs[(numCardsPlayed - 1) * gmSt->getNumPlyrs() + j][k] = 0;
+                                //std::cout << "Done accessing tempBonusProbs" << std::endl;
                             }
                         }
                     }
@@ -360,6 +390,8 @@ Card* DecisionPoint::simulatePlay(bool bidFlag) {
 
 
                 if (bidFlag) {
+                    //std::cout << "In bidFlag loop #2" << std::endl;
+                    int numCardsPlayed = gmSt->getNumCardsPlayed();
                     // For the position in question (currPosition):
                     // If one option is clearly better than the other, then they take that and the entire 2D array becomes the one
                     // If there is a mix, then we take the average of the two 2d arrays
@@ -376,8 +408,10 @@ Card* DecisionPoint::simulatePlay(bool bidFlag) {
                             maxBonusProb = BID_CORRECT_BONUS * bonusProb[currPosition][j];
                             maxBonusProbIdx = j;
                         }
-                        if (BID_CORRECT_BONUS * tempBonusProb[currPosition][j] >= maxTempBonusProb) {
-                            maxTempBonusProb = BID_CORRECT_BONUS * tempBonusProb[currPosition][j];
+                        if (BID_CORRECT_BONUS *
+                            tempBonusProbs[(numCardsPlayed - 1) * gmSt->getNumPlyrs() + currPosition][j] >= maxTempBonusProb) {
+                            maxTempBonusProb = BID_CORRECT_BONUS *
+                                               tempBonusProbs[(numCardsPlayed - 1) * gmSt->getNumPlyrs() + currPosition][j];
                             maxTempBonusProbIdx = j;
                         }
                     }
@@ -387,14 +421,14 @@ Card* DecisionPoint::simulatePlay(bool bidFlag) {
                         // copy temp into actual
                         for (int j = 0; j < gmSt->getNumPlyrs(); j++) {
                             for (int k = 0; k < gmSt->getTotalCards() + 1; k++) {
-                                bonusProb[j][k] = tempBonusProb[j][k];
+                                bonusProb[j][k] = tempBonusProbs[(numCardsPlayed - 1) * gmSt->getNumPlyrs() + j][k];
                             }
                         }
                     } else if (abs(maxTempBonusProb - maxBonusProb) < 0.001 && maxBonusProbIdx < maxTempBonusProbIdx){
                         // copy temp into actual
                         for (int j = 0; j < gmSt->getNumPlyrs(); j++) {
                             for (int k = 0; k < gmSt->getTotalCards() + 1; k++) {
-                                bonusProb[j][k] = tempBonusProb[j][k];
+                                bonusProb[j][k] = tempBonusProbs[(numCardsPlayed - 1) * gmSt->getNumPlyrs() + j][k];
                             }
                         }
                     } else if (abs(maxTempBonusProb - maxBonusProb) < 0.001 && maxBonusProbIdx == maxTempBonusProbIdx) {
@@ -402,7 +436,9 @@ Card* DecisionPoint::simulatePlay(bool bidFlag) {
                         bidTieCount++;
                         for (int j = 0; j < gmSt->getNumPlyrs(); j++) {
                             for (int k = 0; k < gmSt->getTotalCards() + 1; k++) {
-                                bonusProb[j][k] = (bonusProb[j][k] + bidTieCount * tempBonusProb[j][k])
+                                bonusProb[j][k] = (bonusProb[j][k] +
+                                                   bidTieCount *
+                                                   tempBonusProbs[(numCardsPlayed - 1) * gmSt->getNumPlyrs() + j][k])
                                                   / static_cast<double>(bidTieCount + 1);
                             }
                         }
@@ -415,13 +451,13 @@ Card* DecisionPoint::simulatePlay(bool bidFlag) {
         }
 	}
 
-	if (bidFlag && !gmSt->isLastTrick()){
-        // delete tempBonusProb
-        for (int i = 0; i < gmSt->getNumPlyrs(); i++){
-            delete [] tempBonusProb[i];
-        }
-        delete [] tempBonusProb;
-    }
+	//if (bidFlag && !gmSt->isLastTrick()){
+    //    // delete tempBonusProb
+    //    for (int i = 0; i < gmSt->getNumPlyrs(); i++){
+    //        delete [] tempBonusProb[i];
+    //    }
+    //    delete [] tempBonusProb;
+    //}
 
 	// As cards are played and plays reversed, the order of cards in a player's hand is reversed
     // So, position of card i is at getCardsRemaining() - original position - 1
